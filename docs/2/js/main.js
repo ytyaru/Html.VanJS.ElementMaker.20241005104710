@@ -21,8 +21,12 @@ window.addEventListener('DOMContentLoaded', (event) => {
         height: 100,
         viewBox: "0 0 10 10",
     },
-        circle({cx: "5", cy: "5", "r": "5"}),
+        circle({cx:5, cy:5, r:5}),
     ))
+
+    console.log(ml.get('circle'))
+    console.log(ml.gets('circle'))
+    ml.set(ml.get('circle'), circle({cx:5, cy:5, r:3, fill:'red'}))
 });
 window.addEventListener('beforeunload', (event) => {
     console.log('beforeunload!!');
