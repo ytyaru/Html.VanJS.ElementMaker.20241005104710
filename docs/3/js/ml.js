@@ -38,9 +38,33 @@ const add = (el, ...children)=>{
     for (let child of children.flat(Infinity)) { frag.append(child) }
     el.append(frag)
 }
+const mixin = (el)=>{
+    //Object.defineProperty(el.prototype, 'attr', { // TypeError: Object.defineProperty called on non-object
+    Object.defineProperty(el, 'attr', {
+        get(){
+            if (!this._attr){this._attr=new Attr(this)}
+            return this._attr
+        },
+    })
+    //Object.defineProperty(el.prototype, 'css', {
+    Object.defineProperty(el, 'css', {
+        get(){
+            if (!this._css){this._css=new Css(this)}
+            return this._css
+        },
+    })
+    //Object.defineProperty(el.prototype, 'on', {
+    Object.defineProperty(el, 'on', {
+        get(){
+            if (!this._on){this._on=new On(this)}
+            return this._on
+        },
+    })
+}
 const tag = (ns, name, ...args) => {
     const [props, ...children] = Type.isObj(args[0] ?? 0) ? args : [{}, ...args];
     const el = ns ? document.createElementNS(ns, name) : document.createElement(name)
+    mixin(el)
     for (let [k, v] of Object.entries(props)) {
         const propSetter = Type.getSetter(el, k);
         const setter = propSetter ? propSetter.bind(el, v) : null 
@@ -64,7 +88,59 @@ window.ml = {
     set: set,
     get: get,
     gets: gets,
+//    css:CSS,
+//    attr:ATTR,
+//    on:ON,
 }
+Object.defineProperty(window.ml, 'root', {
+    get(){document.querySelector(':root')}
+})
+Object.defineProperty(window.ml, 'css', {
+    get(){return CSS}
+})
+Object.defineProperty(window.ml, 'attr', {
+    get(){return ATTR}
+})
+Object.defineProperty(window.ml, 'on', {
+    get(){return ON}
+})
+
+class ATTR {
+    static get(el,k){return el.getAttribute(k)}
+    static set(el,k,v){el.setAttribute(k,v)}
+    static gets(el,ks){
+        Type.throw('Strs', ks);
+        return ks.map(k=>[k, this.get(el,k)]).toObject();
+    }
+    static sets(el,o) {
+        Type.throw('Obj', ks);
+        [...Object.entries(o)].map(([k,v])=>this.set(el,k,v));
+    }
+}
+class CSS {
+    static get(el,k){return getComputedStyle(el).getPropertyValue(k)}
+    static set(el,k,v){el.style.setProperty(k,v)}
+    static gets(el,ks){
+        Type.throw('Strs', ks)
+        return ks.map(k=>[k, this.get(el,k)]).toObject()
+    }
+    static sets(el,o){
+        Type.throw('Obj', ks);
+        [...Object.entries(o)].map(([k,v])=>this.set(el,k,v))
+    }
+}
+class ON {
+    static on(el, evNm, fn, options) {
+        const args = options ? [evNm, fn, options] : [evNm, fn]
+        el.addEventListener(...args)
+    }
+    static off(el, evNm, fn, options) {
+        const args = options ? [evNm, fn, options] : [evNm, fn]
+        el.removeEventListener(...args)
+    }
+}
+
+
 // 配列からオブジェクトに変換する
 Array.prototype.toObject = function() {
     if (!this.every(v=>Array.isArray(v) && 2<=v.length)) { throw new TypeError(`[[key, value],...]であるべきです。`) }
@@ -84,20 +160,10 @@ class Attr {
         [...Object.entries(o)].map(([k,v])=>this.set(k,v));
     }
 }
-
-/*
-Element.prototype.attr = {
-    get:()=>new Attr(this),
-}
-*/
-Object.defineProperty(Element.prototype, 'attr', {
-//    value: new Attr(this),
-//    get:()=>new Attr(this),
-    get:()=>new Attr(Element.prototype),
-})
 class Css {
     constructor(el){this._el=el}
-    get(k){getComputedStyle(this._el).getPropertyValue(k)}
+    //get(k){console.log(getComputedStyle(this._el), k, getComputedStyle(this._el).getPropertyValue(k));return getComputedStyle(this._el).getPropertyValue(k)}
+    get(k){return getComputedStyle(this._el).getPropertyValue(k)}
     set(k,v){this._el.style.setProperty(k,v)}
     gets(ks){
         Type.throw('Strs', ks)
@@ -108,9 +174,161 @@ class Css {
         [...Object.entries(o)].map(([k,v])=>this.set(k,v))
     }
 }
+class On {
+    constructor(el){this._el=el;this._handlers=[]}
+    on(evNm, fn, options) {
+        const args = options ? [evNm, fn, options] : [evNm, fn]
+        this._el.addEventListener(...args)
+        if (this._handlers.hasOwnProperty(evNm)){this._handlers[evNm].push(args)}
+        else {this._handlers[evNm] = [args]}
+    }
+    off(evNm, fn, options) {
+        if (!evNm && !fn) { // 全削除
+            for (let args of this._handlers) {
+                this._el.removeEventListener(...args)
+            }
+        } else { // 単一削除
+            const args = options ? [evNm, fn, options] : [evNm, fn]
+            this._el.removeEventListener(...args)
+            if (this._handlers.hasOwnProperty(evNm)){
+                this._handlers = this._handlers.filter(v=>!(v.length===args.length && [...Array(v.length)].every((_,i)=>v[i]===args[i])))
+            }
+        }
+    }
+}
+/*
+Element.prototype.css = function(){
+    if (!this._css){this._css=new Css(this)}
+    return this._css
+}
+Element.prototype.attr = function(){
+    if (!this._attr){this._attr=new Attr(this)}
+    console.log(this._attr)
+    return this._attr
+}
+Element.prototype.on = function(){
+    if (!this._on){this._on=new On(this)}
+    return this._on
+}
+*/
+/*
+//Object.defineProperty(Element, 'attr', {
+Object.defineProperty(Element.prototype, 'attr', {
+//    get:function(){return new Attr(this)},
+    get:function(){
+        if (!this._css){this._css=new Css(this)}
+        return this._css
+    },
+})
+//Object.defineProperty(Element, 'css', {
+Object.defineProperty(Element.prototype, 'css', {
+//    get:function(){return new Css(this)},
+    get:function(){
+        if (!this._attr){this._attr=new Attr(this)}
+        console.log(this._attr)
+        return this._attr
+    },
+})
+
+//Object.defineProperty(Element, 'on', {
+Object.defineProperty(Element.prototype, 'on', {
+//    get:function(){return new On(this)},
+    get:function(){
+        if (!this._on){this._on=new On(this)}
+        return this._on
+    },
+})
+
+//Object.assign(el, )
+const SugarableElement = superClass => 
+    class extends superClass {
+        get attr() { return this._attr }
+        get css() { return this._css }
+        get on() { return this._on }
+        get(q, t) {
+            const R = document.querySelector(':root')
+            return (!Type.isStr(q)) ? R : (Type.isEl(target) ? target : R).querySelector(q)
+        }
+        gets(q, t) { return [...(target ? target : document.body).querySelectorAll(q)] }
+        set(...elements) {target.replaceWith(...elements)}
+        add(...children) {
+            const frag = document.createDocumentFragment();
+            for (let child of children.flat(Infinity)) { frag.append(child) }
+            el.append(frag)
+        }
+        get next() {}
+        get prev() {}
+        get parent() {}
+        get descendants() {} // 子孫
+        get ancestors() {} // 先祖
+        xpath(xpath) {
+
+        }
+    };
+class MyObserverComponent extends SugarableElement(HTMLElement) {
+}
+
+Object.assign(HTMLElement.prototype, sayHiMixin);
+
+const sugarElMixin = {
+    get: function(){
+
+    },
+}
+
+class SugarElement extends Element {
+    constructor(){
+        super()
+        this._attr = new Attr(this)
+        this._css = new Css(this)
+        this._on = new On(this)
+    }
+    get attr() { return this._attr }
+    get css() { return this._css }
+    get on() { return this._on }
+    get(q, t) {
+        const R = document.querySelector(':root')
+        return (!Type.isStr(q)) ? R : (Type.isEl(target) ? target : R).querySelector(q)
+    }
+    gets(q, t) { return [...(target ? target : document.body).querySelectorAll(q)] }
+    set(...elements) {target.replaceWith(...elements)}
+    add(...children) {
+        const frag = document.createDocumentFragment();
+        for (let child of children.flat(Infinity)) { frag.append(child) }
+        el.append(frag)
+    }
+    get next() {}
+    get prev() {}
+    get parent() {}
+    get descendants() {} // 子孫
+    get ancestors() {} // 先祖
+    xpath(xpath) {
+
+    }
+}
+*/
+/*
+Element.prototype.attr = {
+    get:()=>new Attr(this),
+}
+Object.defineProperty(Element.prototype, 'attr', {
+//    value: new Attr(this),
+//    get:()=>new Attr(this),
+    get:()=>new Attr(Element.prototype),
+})
 Object.defineProperty(Element.prototype, 'css', {
     get:()=>new Css(this),
 })
+*/
+
+class Ml {
+    get tags() { }
+    get root() { return }
+    get(q, t) { return }
+    gets(q, t) { return }
+    add(t, ...children) {
+    }
+}
 /*
 
 const css = {}
