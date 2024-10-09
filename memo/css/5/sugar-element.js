@@ -25,6 +25,7 @@ function key(k) { return isChain(k) ? k : camel2Chain(k) } // el['chain-case'] =
 function prop(k) { return isCamel(k) ? k : chain2Camel(k) } // css['writing-mode'] = 'v' / css.writingMode = 'v'
 function a2o(a) { return 0===a.length ? {} : Object.assign(...a.map(([k,v])=>({[k]:v}))) } // [[k,v], ...] => {k:v, ...}
 function isNU(v) { return [null,undefined].some(V=>V===v) }
+function isObj(v) { return isNU(v) ? false : 'object'===typeof v && Object===v.constructor }
 function matchKey(k, ...args) {
     for (let i=0; i<args.length; i+=2) { if (k===args[i]) {args[i+1]()} }
     if (0===args.length%2) {
@@ -37,13 +38,13 @@ Object.defineProperties(Element.prototype, {
     attr: { // HTML Element attribute
         get() { return new Proxy(this, {
             get(t,k){return t.getAttribute(key(k))}, 
-            set(t,k,v){console.log('attr set():',k,v,isNU(v),key(k));isNU(v) ? t.removeAttribute(key(k)) : t.setAttribute(key(k),v)},
+            set(t,k,v){isNU(v) ? t.removeAttribute(key(k)) : t.setAttribute(key(k),v)},
         }) },
     },
     data: { // HTML Element data-attribute
         get() { return new Proxy(this, {
             get(t,k){return t.attr[`data-${key(k)}`]}, 
-            set(t,k,v){console.log('data set():',k,v);t.attr[`data-${key(k)}`]=v}
+            set(t,k,v){t.attr[`data-${key(k)}`]=v}
         }) },
     },
     cp: { // CSS variable / CSS Custom Property  
@@ -70,20 +71,36 @@ Object.defineProperties(Element.prototype, {
     attrs: {
         get() { return a2o([...Array(this.attributes.length)].map((_,i)=>{const a=this.attributes.item(i);return [a.name, a.value]})) },
         set(v) {
-            if (isNU(v)) { [...Object.keys(this.attrs)].map(k=>this.attr[k]=null) } // 全削除
-            else { for (let [K,V] of Object.entries(v)) { this.attr[K] = V } } // 各キーに代入
+            if (isNU(v) || isObj(v)) {
+                [...Object.keys(this.attrs)].map(k=>this.attr[k]=null) // 全削除
+                if (isObj(v)) { for (let [K,V] of Object.entries(v)) { this.attr[K] = V } } // 各キーに代入
+            }
+//            if (isNU(v) || isObj(v)) {[...Object.keys(this.attrs)].map(k=>this.attr[k]=null)} // 全削除
+//            if (isObj(v)) { for (let [K,V] of Object.entries(v)) { this.attr[K] = V } } // 各キーに代入
+            //if (isNU(v)) { [...Object.keys(this.attrs)].map(k=>this.attr[k]=null) } // 全削除
+            //else { for (let [K,V] of Object.entries(v)) { this.attr[K] = V } } // 各キーに代入
         },
     },
     datas: {
         get() { return a2o([...Array(this.attributes.length)].map((_,i)=>this.attributes.item(i)).filter(a=>a.name.startsWith('data-')).map(a=>[chain2Camel(a.name.replace(/^data-/,'')), a.value])) },
         set(v) {
-            if (isNU(v)) {console.log(this.datas, [...Object.keys(this.datas)]); [...Object.keys(this.datas)].map(k=>this.data[k]=null) } // 全削除
-            else { for (let [K,V] of Object.entries(v)) { this.data[K] = V } } // 各キーに代入
+            if (isNU(v) || isObj(v)) {
+                [...Object.keys(this.datas)].map(k=>this.data[k]=null) // 全削除
+                if (isObj(v)) { for (let [K,V] of Object.entries(v)) { this.data[K] = V } } // 各キーに代入
+            }
+//            if (isNU(v)) {[...Object.keys(this.datas)].map(k=>this.data[k]=null) } // 全削除
+//            else { for (let [K,V] of Object.entries(v)) { this.data[K] = V } } // 各キーに代入
         },
     },
     cps: { // CSS variable / CSS Custom Property  
-        get() { return a2o([...this.computedStyleMap().entries()].filter(([k,v])=>k.startsWith('--')).map(kv=>[kv[0], kv[1].toString()])) },
-        set(o) { for (let [k,v] of Object.entries(o)) { this.cp[k] = v } },
+        get() { return a2o([...this.computedStyleMap().entries()].filter(([k,v])=>k.startsWith('--')).map(kv=>[prop(kv[0].replace(/\-+/,'')), kv[1].toString()])) },
+        set(o) {
+            if (isNU(o) || isObj(o)) {
+                [...Object.keys(this.cps)].map(k=>this.data[k]=null) // 全削除
+                if (isObj(o)) { for (let [K,V] of Object.entries(o)) { this.cp[K] = V } } // 各キーに代入
+            }
+//            for (let [k,v] of Object.entries(o)) { this.cp[k] = v }
+        },
     },
 
     // Style:  CSSStyleDeclaration
@@ -93,7 +110,7 @@ Object.defineProperties(Element.prototype, {
     styles: {
         get() {
             const kvs = []
-            for (let kv of this.getAttribute('style').split(';')) {
+            for (let kv of (this.getAttribute('style') ?? '').split(';')) {
                 const k = kv.split(':')[0].trim()
                 if (''!==k) {kvs.push([chain2Camel(k),this.style[prop(k)]])}
 //                if (''!==k) {kvs.push([chain2Camel(k),this.css[k]])}
@@ -101,8 +118,12 @@ Object.defineProperties(Element.prototype, {
             return a2o(kvs)
         },
         set(v) {
+            if (isNU(v) || isObj(v)) {
+                this.removeAttribute('style');
+                if (isObj(v)) { for (let [K,V] of Object.entries(v)) { this.style[K] = V } } // 各キーに代入
+            }
+            //for (let [K,V] of Object.entries(v)) { this.style[prop(K)] = V }
             //for (let [K,V] of Object.entries(v)) { this.css[K] = V }
-            for (let [K,V] of Object.entries(v)) { this.style[prop(K)] = V }
         },
         /*
         get() {return getComputedStyle(this)},

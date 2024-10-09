@@ -44,13 +44,6 @@ window.addEventListener('DOMContentLoaded', async(e)=>{
     p.cp.mainColor = null
     console.log(getComputedStyle(p).getPropertyValue('--main-color')) // 取得できる
 
-
-    console.log([...p.computedStyleMap().entries()])
-    console.log([...p.computedStyleMap().keys()])
-    console.log([...p.computedStyleMap().keys()].filter(k=>k.startsWith('--')))
-    console.log([...p.computedStyleMap().entries()].filter(([k,v])=>k.startsWith('--')))
-    console.log([...p.computedStyleMap().entries()].filter(([k,v])=>k.startsWith('--')).map(kv=>[kv[0], kv[1].toString()]))
-
     console.log(p.class.v)
     console.log(p.class.l)
     p.class.v = 'A BC'
@@ -69,6 +62,51 @@ window.addEventListener('DOMContentLoaded', async(e)=>{
     console.log(p.styles)
     console.log(p.cps)
 
+    p.attr.tabindex = 0
+    p.data.myKey = 'x'
+    p.style.backgroundColor = 'green'
+    p.cp.customProp1 = 'cp1'
+    p.cp.customProp2 = 'cp2'
+
+    console.log(p.attrs)
+    console.log(p.datas)
+    console.log(p.styles)
+    console.log(p.cps)
+
+    p.attrs = {
+        ...p.attrs,
+        newAttr: 'newValue',
+        dataNewKey: 'dataNewValue',
+    }
+    console.log(p.attrs)
+    p.datas = {
+        key1: 'value',
+        myKey: 'MyVal',
+    }
+    console.log(p.datas)
+    p.styles = null
+    console.log(p.styles)
+    p.styles = {
+        color: '#000',
+        backgroundColor: '#fff',
+    }
+    console.log(p.styles)
+    p.cps = {
+        myKey1: 'myVal1',
+        myKey2: 'myVal2',
+    }
+    console.log(p.cps)
+    console.log(p.styles)
+    console.log(p.attr.style)
+
+
+    /*
+    console.log([...p.computedStyleMap().entries()])
+    console.log([...p.computedStyleMap().keys()])
+    console.log([...p.computedStyleMap().keys()].filter(k=>k.startsWith('--')))
+    console.log([...p.computedStyleMap().entries()].filter(([k,v])=>k.startsWith('--')))
+    console.log([...p.computedStyleMap().entries()].filter(([k,v])=>k.startsWith('--')).map(kv=>[kv[0], kv[1].toString()]))
+    */
     /*
     console.log(p.attrs)
     p.attrs = {
