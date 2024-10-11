@@ -220,11 +220,11 @@ class Node {
         ['element', this._el.ELEMENT_NODE],
         ['attribute', this._el.ATTRIBUTE_NODE],
         ['text', this._el.TEXT_NODE],
-        ['cdata', this._el.CDATA_SECTION_NODE],
-        ['processingInstruction', this._el.PROCESSING_INSTRUCTION_NODE],
-        ['comment', this._el.COMMENT_NODE],
+        ['cdata', this._el.CDATA_SECTION_NODE], // <!CDATA[[ … ]]>
+        ['processingInstruction', this._el.PROCESSING_INSTRUCTION_NODE], // <?xml-stylesheet … ?>
+        ['comment', this._el.COMMENT_NODE], // <!-- … -->
         ['document', this._el.DOCUMENT_NODE],
-        ['documentType', this._el.DOCUMENT_TYPE_NODE],
+        ['documentType', this._el.DOCUMENT_TYPE_NODE], // <!DOCTYPE html>
         ['documentFragment', this._el.DOCUMENT_FRAGMENT_NODE],
     ] }
     get typeObj() { return a2o(this.typeAry) }
