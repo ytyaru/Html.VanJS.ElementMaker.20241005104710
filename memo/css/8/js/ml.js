@@ -19,6 +19,29 @@ window.ml = {
     }
     // 要素取得（querySelector[All]()）
     root: document.querySelector(':root'),
+    addRoot: (...children)=>{
+        const frag = document.createDocumentFragment();
+        for (let child of children.flat(Infinity)) { frag.append(child) }
+        ml.root.append(frag)
+    },
+    add: (parent, ...children)=>{
+        const frag = document.createDocumentFragment();
+        for (let child of children.flat(Infinity)) { frag.append(child) }
+        parent.append(frag)
+    },
+    insRootFirstChild: (el)=>ml.root.insertAdjacentElement('afterbegin', el),
+    insRootLastChild: (el)=>ml.root.insertAdjacentElement('beforeend', el),
+    insBefore: (parent,el)=>parent.insertAdjacentElement('beforebegin', el),
+    insAfter: (parent,el)=>parent.insertAdjacentElement('afterend', el),
+    insFirstChild: (parent,el)=>parent.insertAdjacentElement('afterbegin', el),
+    insLastChild: (parent,el)=>parent.insertAdjacentElement('beforeend', el),
+//    insRF(e)=>ml.root.insertAdjacentElement('afterbegin', el),
+//    insRL(e)=>ml.root.insertAdjacentElement('beforeend', el),
+//    insB:(p,e)=>p.insertAdjacentElement('beforebegin', e),
+//    insA:(p,e)=>p.insertAdjacentElement('afterend', e),
+//    insF:(p,e)=>p.insertAdjacentElement('afterbegin', e),
+//    insL:(p,e)=>p.insertAdjacentElement('beforeend', e),
+
     get: (q,e)=>document.querySelector(q, e ?? ml.root),
     gets:()=>document.querySelectorAll(q, e ?? ml.root),
     getx:()=>,
@@ -34,51 +57,4 @@ window.ml = {
     meta: null,
     ld: null,
 }
-
-
-
-//el.xpath
-//el.getx()
-//el.getxs()
-//el.setx()
-//el.delx()
-class XPath {
-    constructor() {}
-    getPath(el) {
-        if(el && el.parentNode) {
-            var xpath = this.getPath(el.parentNode) + '/' + el.tagName;
-            var s = [];
-            for(var i=0; i<el.parentNode.childNodes.length; i++) {
-                var e = el.parentNode.childNodes[i];
-                if(e.tagName == el.tagName) {s.push(e)}
-            }
-            if(1 < s.length) {
-                for(var i=0; i<s.length; i++) {
-                    if(s[i] === el) {
-                    xpath += '[' + (i+1) + ']';
-                    break;
-                }
-            }
-        }
-        return xpath.toLowerCase();
-        } else {return ''}
-    }
-    getEl(xpath){
-        const a = this.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
-        if (a.snapshotLength > 0) { return a.snapshotItem(0); }
-    }
-    getEls(xpath){
-        const a = this.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
-        return [...Array(a.snapshotLength)].map((_,i)=>a.snapshotItem(i))
-    }
-    delEls(xpath){
-        const a = this.evaluate(xpath, document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null)
-        for (var i=0 ; i<a.snapshotLength; i++) {a.snapshotItem(i).parentNode.removeChild(a.snapshotItem(i))} 
-    }
-    replaceEls(xpath, ...newEls){
-        const a = this.evaluate(xpath, document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null)
-        for (var i=0 ; i<a.snapshotLength; i++) {a.snapshotItem(i).replaceWith(...newEls)}
-    }
-}
-
 })();
