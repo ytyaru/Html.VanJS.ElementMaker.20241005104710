@@ -128,6 +128,7 @@ Object.defineProperties(Element.prototype, {
             }
         },
     },
+    // Element/Node（本当なら型をダウンキャストして対応したいがJSでは不可能のため）
     E: {
         get() {
             if (!this._elm){this._elm=new Elm(this)}
@@ -140,6 +141,17 @@ Object.defineProperties(Element.prototype, {
             return this._node;
         },
     },
+    // XPath
+    xpath: {get(){return XPath.getPath(this)}},
+    get: {value:(q,e)=>document.querySelector(q, e ?? this.get(':root'))},
+    gets: {value:(q,e)=>document.querySelectorAll(q, e ?? this.get(':root'))},
+    set: {value:(...es)=>this.replaceWith(...es)},
+    del: {value:()=>this.remove()},
+    getX: {value:(p)=>XPath.getEl(p)},
+    getXs: {value:(p)=>XPath.getEls(p)},
+    setX: {value:(p, ...es)=>XPath.replaceEls(p, ...es)},
+    delX: {value:(p)=>XPath.delEls(p)},
+
     /*
     cs: { // computedStyle() CSS再計算するためパフォーマンス低下する content-visibility:hidden で再計算を防ぐと吉
         get() {return getComputedStyle(this)},
@@ -251,6 +263,43 @@ class Node {
         }
         console.log(rets)
         return rets
+    }
+}
+class XPath {
+    static getPath(el) {
+        if(el && el.parentNode) {
+            var xpath = this.getPath(el.parentNode) + '/' + el.tagName;
+            var s = [];
+            for(var i=0; i<el.parentNode.childNodes.length; i++) {
+                var e = el.parentNode.childNodes[i];
+                if(e.tagName == el.tagName) {s.push(e)}
+            }
+            if(1 < s.length) {
+                for(var i=0; i<s.length; i++) {
+                    if(s[i] === el) {
+                    xpath += '[' + (i+1) + ']';
+                    break;
+                }
+            }
+        }
+        return xpath.toLowerCase();
+        } else {return ''}
+    }
+    static getEl(xpath){
+        const a = this.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+        if (a.snapshotLength > 0) { return a.snapshotItem(0); }
+    }
+    static getEls(xpath){
+        const a = this.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+        return [...Array(a.snapshotLength)].map((_,i)=>a.snapshotItem(i))
+    }
+    static delEls(xpath){
+        const a = this.evaluate(xpath, document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null)
+        for (var i=0 ; i<a.snapshotLength; i++) {a.snapshotItem(i).parentNode.removeChild(a.snapshotItem(i))} 
+    }
+    static replaceEls(xpath, ...newEls){
+        const a = this.evaluate(xpath, document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null)
+        for (var i=0 ; i<a.snapshotLength; i++) {a.snapshotItem(i).replaceWith(...newEls)}
     }
 }
 
