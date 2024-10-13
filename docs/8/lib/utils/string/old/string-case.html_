@@ -1,0 +1,198 @@
+<meta charset="utf-8">
+<script src="../js/util/test.js"></script>
+<script src="../lib/underscore/1.13.6/min.js"></script>
+<script src="../js/util/type.js"></script>
+<script src="../js/util/string/case.js"></script>
+<script>
+window.addEventListener('DOMContentLoaded', (event) => {
+    const test = new Test()
+    const chain = 'my-name-is-andy'
+    const snake = 'my_name_is_andy'
+    const camel = 'myNameIsAndy'
+    const pascal = 'MyNameIsAndy'
+    const constant = 'MY_NAME_IS_ANDY'
+    const title = 'My name is andy'
+    const complexCase = 'My-name_isAndy'
+    const hasNotCase = 'hasnotcase'
+    console.log(chain.toChain())
+    console.log(chain)
+    console.log(new String(chain))
+    console.log(chain.caseNames())
+    console.log(complexCase, complexCase.toChain())
+    test.run([
+        // Name
+        ()=>_.isEqual(['chain', 'snake', 'camel', 'pascal', 'constant', 'title'], chain.caseNames()),
+        ()=>'chain'===chain.caseName(),
+        ()=>'snake'===snake.caseName(),
+        ()=>'camel'===camel.caseName(),
+        ()=>'pascal'===pascal.caseName(),
+        ()=>'constant'===constant.caseName(),
+        ()=>'title'===title.caseName(),
+        ()=>''===complexCase.caseName(),
+        ()=>chain.isSomeCase(),
+        ()=>snake.isSomeCase(),
+        ()=>camel.isSomeCase(),
+        ()=>pascal.isSomeCase(),
+        ()=>constant.isSomeCase(),
+        ()=>title.isSomeCase(),
+        ()=>!complexCase.isSomeCase(),
+        // is
+        ()=>chain.isChain(),
+        ()=>!chain.isSnake(),
+        ()=>!chain.isCamel(),
+        ()=>!chain.isPascal(),
+        ()=>!chain.isConstant(),
+        ()=>!chain.isTitle(),
+        ()=>!snake.isChain(),
+        ()=>snake.isSnake(),
+        ()=>!snake.isCamel(),
+        ()=>!snake.isPascal(),
+        ()=>!snake.isConstant(),
+        ()=>!snake.isTitle(),
+        ()=>!camel.isChain(),
+        ()=>!camel.isSnake(),
+        ()=>camel.isCamel(),
+        ()=>!camel.isPascal(),
+        ()=>!camel.isConstant(),
+        ()=>!camel.isTitle(),
+        ()=>!pascal.isChain(),
+        ()=>!pascal.isSnake(),
+        ()=>!pascal.isCamel(),
+        ()=>pascal.isPascal(),
+        ()=>!pascal.isConstant(),
+        ()=>!pascal.isTitle(),
+        ()=>!constant.isChain(),
+        ()=>!constant.isSnake(),
+        ()=>!constant.isCamel(),
+        ()=>!constant.isPascal(),
+        ()=>constant.isConstant(),
+        ()=>!constant.isTitle(),
+        ()=>!title.isChain(),
+        ()=>!title.isSnake(),
+        ()=>!title.isCamel(),
+        ()=>!title.isPascal(),
+        ()=>!title.isConstant(),
+        ()=>title.isTitle(),
+        ()=>!complexCase.isChain(),
+        ()=>!complexCase.isSnake(),
+        ()=>!complexCase.isCamel(),
+        ()=>!complexCase.isPascal(),
+        ()=>!complexCase.isConstant(),
+        ()=>!complexCase.isTitle(),
+        // toChain
+        ()=>chain===chain.toChain(),
+        ()=>String(chain)===chain.toChain(),
+        ()=>new String(chain)!==chain.toChain(),
+        ()=>_.isEqual(chain, chain.toChain()),
+        ()=>Type.isString(chain, chain.toChain()),
+        // toSnake
+        ()=>snake===snake.toSnake(),
+        ()=>String(snake)===snake.toSnake(),
+        ()=>new String(snake)!==snake.toSnake(),
+        ()=>_.isEqual(snake, snake.toSnake()),
+        ()=>Type.isString(snake, snake.toSnake()),
+        // toCamel
+        ()=>camel===camel.toCamel(),
+        ()=>String(camel)===camel.toCamel(),
+        ()=>new String(camel)!==camel.toCamel(),
+        ()=>_.isEqual(camel, camel.toCamel()),
+        ()=>Type.isString(camel, camel.toCamel()),
+        // toPascal
+        ()=>pascal===pascal.toPascal(),
+        ()=>String(pascal)===pascal.toPascal(),
+        ()=>new String(pascal)!==pascal.toPascal(),
+        ()=>_.isEqual(pascal, pascal.toPascal()),
+        ()=>Type.isString(pascal, pascal.toPascal()),
+        // toConstant
+        ()=>constant===constant.toConstant(),
+        ()=>String(constant)===constant.toConstant(),
+        ()=>new String(constant)!==constant.toConstant(),
+        ()=>_.isEqual(constant, constant.toConstant()),
+        ()=>Type.isString(constant, constant.toConstant()),
+        // toTitle
+        ()=>title===title.toTitle(),
+        ()=>String(title)===title.toTitle(),
+        ()=>new String(title)!==title.toTitle(),
+        ()=>_.isEqual(title, title.toTitle()),
+        ()=>Type.isString(title, title.toTitle()),
+        // NotCase 'My-name_isAndy'
+        ()=>complexCase===complexCase.toChain(),
+        ()=>complexCase===complexCase.toChain(),
+        ()=>complexCase===complexCase.toSnake(),
+        ()=>complexCase===complexCase.toCamel(),
+        ()=>complexCase===complexCase.toPascal(),
+        ()=>complexCase===complexCase.toConstant(),
+        ()=>complexCase===complexCase.toTitle(),
+        ()=>complexCase===complexCase.Chain,
+        ()=>complexCase===complexCase.Snake,
+        ()=>complexCase===complexCase.Camel,
+        ()=>complexCase===complexCase.Pascal,
+        ()=>complexCase===complexCase.Constant,
+        ()=>complexCase===complexCase.Title,
+        // hasNotCase 'hasnotcase'
+        ()=>hasNotCase===hasNotCase.toChain(),
+        ()=>hasNotCase===hasNotCase.toChain(),
+        ()=>hasNotCase===hasNotCase.toSnake(),
+        ()=>hasNotCase===hasNotCase.toCamel(),
+        ()=>'Hasnotcase'===hasNotCase.toPascal(),
+        ()=>'HASNOTCASE'===hasNotCase.toConstant(),
+        ()=>'Hasnotcase'===hasNotCase.toTitle(),
+        ()=>hasNotCase===hasNotCase.Chain,
+        ()=>hasNotCase===hasNotCase.Snake,
+        ()=>hasNotCase===hasNotCase.Camel,
+        ()=>'Hasnotcase'===hasNotCase.Pascal,
+        ()=>'HASNOTCASE'===hasNotCase.Constant,
+        ()=>'Hasnotcase'===hasNotCase.Title,
+        // 1字 'a'
+        ()=>'a'==='a'.toChain(),
+        ()=>'a'==='a'.toSnake(),
+        ()=>'a'==='a'.toCamel(),
+        ()=>'A'==='a'.toPascal(),
+        ()=>'A'==='a'.toConstant(),
+        ()=>'A'==='a'.toTitle(),
+        ()=>'a'==='a'.Chain,
+        ()=>'a'==='a'.Snake,
+        ()=>'a'==='a'.Camel,
+        ()=>'A'==='a'.Pascal,
+        ()=>'A'==='a'.Constant,
+        ()=>'A'==='a'.Title,
+        // to
+        ()=>{
+            const ids = ['Chain', 'Constant', 'Pascal', 'Snake', 'Camel', 'Title']
+            const actuals = ['java-script', 'JAVA_SCRIPT', 'JavaScript', 'java_script', 'javaScript', 'Java script']
+            const expecteds = ['java-script', 'JAVA_SCRIPT', 'JavaScript', 'java_script', 'javaScript', 'Java script']
+            for (let i=0; i<ids.length; i++) {
+                for (let a=0; a<actuals.length; a++) {
+                    if (i===a) {continue}
+                    console.debug(i, a, `expected:${expecteds[i]}`, 'actual:'+actuals[a][`to${ids[i]}`](), `${actuals[a].caseName()}.to${ids[i]}('${actuals[a]}')`)
+                    const result = expecteds[i]===actuals[a][`to${ids[i]}`]()
+                    if (!result) { return false }
+                }
+            }
+            return true
+        },
+        ()=>'A'==='a'.Pascal
+        /*
+        ()=>Test.assertError(Error, '入力strは次のいずれかのケースであるべきです。chain,snake,camel,pascal,constant,title', ()=>complexCase.toChain()),
+        ()=>Test.assertError(Error, '入力strは次のいずれかのケースであるべきです。chain,snake,camel,pascal,constant,title', ()=>complexCase.toSnake()),
+        ()=>Test.assertError(Error, '入力strは次のいずれかのケースであるべきです。chain,snake,camel,pascal,constant,title', ()=>complexCase.toCamel()),
+        ()=>Test.assertError(Error, '入力strは次のいずれかのケースであるべきです。chain,snake,camel,pascal,constant,title', ()=>complexCase.toPascal()),
+        ()=>Test.assertError(Error, '入力strは次のいずれかのケースであるべきです。chain,snake,camel,pascal,constant,title', ()=>complexCase.toConstant()),
+        ()=>Test.assertError(Error, '入力strは次のいずれかのケースであるべきです。chain,snake,camel,pascal,constant,title', ()=>complexCase.toTitle()),
+        */
+        /*
+        ()=>complexCase===complexCase.toTitle(),
+        ()=>String(complexCase)===complexCase.toTitle(),
+        ()=>new String(complexCase)!==complexCase.toTitle(),
+        ()=>_.isEqual(complexCase, complexCase.toTitle()),
+        ()=>Type.isString(complexCase, complexCase.toTitle()),
+        */
+    ])
+})
+</script>
+
+<h1></h1>
+<header></header>
+<main></main>
+<footer></footer>
+

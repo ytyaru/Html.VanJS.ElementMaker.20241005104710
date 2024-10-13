@@ -1,0 +1,99 @@
+<meta charset="utf-8">
+<script src="../type.js"></script>
+<script src="../string/case.js"></script>
+<script src="../test/assertion.js"></script>
+<script src="../test/black-box.js"></script>
+<!--
+<script src="../js/util/test.js"></script>
+<script src="../lib/underscore/1.13.6/min.js"></script>
+<script src="../js/util/type.js"></script>
+<script src="../js/util/string/case.js"></script>
+-->
+<script>
+window.addEventListener('DOMContentLoaded', (event) => {
+    const a = new Assertion()
+    const bb = new BlackBox(a)
+    a.t(()=>Type.isIns(''.case))
+    a.t(()=>{
+        const names = 'chain,snake,camel,pascal,constant,title'.split(',')
+        return names.every(n=>''.case.names.includes(n))
+    })
+    console.log('my-name'.case.name)
+    a.t(()=>'my-name-is'.case.name==='chain')
+    a.t(()=>'my_name_is'.case.name==='snake')
+    a.t(()=>'myNameIs'.case.name==='camel')
+    a.t(()=>'MyNameIs'.case.name==='pascal')
+    a.t(()=>'MY_NAME_IS'.case.name==='constant')
+    a.t(()=>'My name is'.case.name==='title')
+
+    a.t(()=>'my-name-is'.case.chain==='my-name-is')
+    a.t(()=>'my-name-is'.case.snake==='my_name_is')
+    a.t(()=>'my-name-is'.case.camel==='myNameIs')
+    a.t(()=>'my-name-is'.case.pascal==='MyNameIs')
+    a.t(()=>'my-name-is'.case.constant==='MY_NAME_IS')
+    a.t(()=>'my-name-is'.case.title==='My name is')
+
+    a.t(()=>'my_name_is'.case.chain==='my-name-is')
+    a.t(()=>'my_name_is'.case.snake==='my_name_is')
+    a.t(()=>'my_name_is'.case.camel==='myNameIs')
+    a.t(()=>'my_name_is'.case.pascal==='MyNameIs')
+    a.t(()=>'my_name_is'.case.constant==='MY_NAME_IS')
+    a.t(()=>'my_name_is'.case.title==='My name is')
+
+    a.t(()=>'myNameIs'.case.chain==='my-name-is')
+    a.t(()=>'myNameIs'.case.snake==='my_name_is')
+    a.t(()=>'myNameIs'.case.camel==='myNameIs')
+    a.t(()=>'myNameIs'.case.pascal==='MyNameIs')
+    a.t(()=>'myNameIs'.case.constant==='MY_NAME_IS')
+    a.t(()=>'myNameIs'.case.title==='My name is')
+
+    a.t(()=>'MyNameIs'.case.chain==='my-name-is')
+    a.t(()=>'MyNameIs'.case.snake==='my_name_is')
+    a.t(()=>'MyNameIs'.case.camel==='myNameIs')
+    a.t(()=>'MyNameIs'.case.pascal==='MyNameIs')
+    a.t(()=>'MyNameIs'.case.constant==='MY_NAME_IS')
+    a.t(()=>'MyNameIs'.case.title==='My name is')
+
+    a.t(()=>'MY_NAME_IS'.case.chain==='my-name-is')
+    a.t(()=>'MY_NAME_IS'.case.snake==='my_name_is')
+    a.t(()=>'MY_NAME_IS'.case.camel==='myNameIs')
+    a.t(()=>'MY_NAME_IS'.case.pascal==='MyNameIs')
+    a.t(()=>'MY_NAME_IS'.case.constant==='MY_NAME_IS')
+    a.t(()=>'MY_NAME_IS'.case.title==='My name is')
+
+    a.t(()=>'My name is'.case.chain==='my-name-is')
+    a.t(()=>'My name is'.case.snake==='my_name_is')
+    a.t(()=>'My name is'.case.camel==='myNameIs')
+    a.t(()=>'My name is'.case.pascal==='MyNameIs')
+    a.t(()=>'My name is'.case.constant==='MY_NAME_IS')
+    a.t(()=>'My name is'.case.title==='My name is')
+
+    // 不正値系
+    a.t(()=>''.case.name==='')
+    a.t(()=>'-_'.case.name==='')
+    a.t(()=>'html'.case.name==='chain')    // chain,snake,camelでありうるが先出のchainである。正確にはlower。
+    a.t(()=>'HTML'.case.name==='constant') // 大文字が連続した場合は他の型に変換できないため不正値として扱うべきでは？
+    a.t(()=>'HTMLs'.case.name==='pascal')  
+    a.t(()=>'aHTML'.case.name==='camel')
+
+    console.log('_HTML'.case.name)
+    console.log('-HTML'.case.name)
+    console.log('-html'.case.name)
+    console.log('HTMLs'.case.chain)       // 大文字が連続しつつ小文字も含まれると狂ってしまう！
+    console.log('HTMLs'.case.snake)
+    console.log('HTMLs'.case.camel)
+    console.log('HTMLs'.case.pascal)
+    console.log('HTMLs'.case.constant)
+    console.log('HTMLs'.case.title)
+    console.log('writing-mode'.case.name)
+    console.log('-webkit-color'.case.name)
+    console.log('--main-color'.case.name)
+    a.fin()
+})
+</script>
+
+<h1></h1>
+<header></header>
+<main></main>
+<footer></footer>
+

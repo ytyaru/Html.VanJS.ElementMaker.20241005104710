@@ -1,199 +1,121 @@
-// crel.js  document.createElement[NS]() wrapper
-// const {要素名, ...} = crel(名前空間名URL)
-// crel.要素名({属性名:属性値,...}, 子要素, ...)
 ;(function(){
-class TYPE {
-  is(tyNm,v) {return this[`is${tyNm.case.title}`](v)}
-  iss(tyNm,v){return this.isAry(v) && v.every(V=>this[`is${tyNm}`](V))}
-  throw(tyNm,v,msg='') {if(!this[`is${tyNm.case.title}`](v)){throw new TypeError(msg)}}
-  throws(tyNm,v,msg='') {if(!v.every(V=>this[`is${tyNm.case.title}s`](V))){throw new TypeError(msg)}}
-
-  isObj(v) {return 'object'===typeof v && Object===v.constructor}
-  isStr(v) {return 'string'===typeof v || v instanceof String}
-  isFn(v) {return 'function'===typeof v}
-  isEl(v) {return v instanceof Element }
-  isAry(v) {return Array.isArray(v)}
-
-  isStrs(v) {return this.isAry(v) && v.every(V=>this.isStr(V))}
-  isEls(v) {return this.isAry(v) && v.every(V=>this.isEls(V))}
-
-  getGetter(target, key) { return this.#getDesc(target, key)?.get ?? null }
-  getSetter(target, key) { return this.#getDesc(target, key)?.set ?? null }
-  #getDesc(target, key) {
-    return target 
-    ? Object.getOwnPropertyDescriptor(target, key) ?? this.#getDesc(Object.getPrototypeOf(target), key)
-    : undefined
-  }
+// 依存ライブラリ Type(isObj,isFn,getSetter)
+class ML { // 要素を操作する（生成、追加、取得、置換、削除）。CSSセレクタ／XPath
+    get tags(){return new Proxy(ns=>new Proxy(this.#tag, this.#handler(ns)), this.#handler())}
+    #handler(ns){return {get:(_,name)=>this.#tag.bind(this, ns, name)}}
+    #tag(ns, name, ...args) {
+        const [props, ...children] = Type.isObj(args[0] ?? 0) ? args : [{}, ...args];
+        const el = ns ? document.createElementNS(ns, name) : document.createElement(name)
+        for (let [k, v] of Object.entries(props)) {this.#getSetter(el, k, v, Type.getSetter(el, k))()}
+        console.log(this)
+        return this.add(el, children)
+    }
+    #getSetter(el, k, v, propSetter) {return propSetter ? propSetter.bind(el, v) : null 
+        ?? (k.startsWith('on') && Type.isFn(v)) 
+        ? ()=>el.addEventListener(k.slice(2), v)
+        : el.setAttribute.bind(el, k, v)
+    }
+    get root() { return document.querySelector(':root') }
+    add(el, ...children) {
+        const frag = document.createDocumentFragment();
+        for (let child of children.flat(Infinity)) { frag.append(child) }
+        el.append(frag)
+        return el
+    }
+    addRoot(...cs) {return this.add(this.root, ...cs)}
+    get(q,e){return (e ?? this.root).querySelector(q)}
+    gets(q,e){return (e ?? this.root).querySelectorAll(q)}
+    set(e, ...cs){return e.replaceWith(...cs)}
+    del(e){e.remove()}
+    // XPath系
+    getPath(e){return XPath.getPath(e)}
+    getX(xpath,e){return XPath.getEl(xpath, e ?? this.root)}
+    getXs(xpath,e){return XPath.getEls(xpath, e ?? this.root)}
+    setX(xpath,...es){return XPath.setEls(xpath, ...es)}
+    delX(xpath){return XPath.delEls(xpath)}
+    // イベント系
+    get onStart() {return window.events.events.getFirstFn('DOMContentLoaded')}
+    set onStart(fn) { window.events.on('DOMContentLoaded', fn) }
+    get onEnd() {return window.events.events.getFirstFn('beforeunload')}
+    set onEnd(fn) { window.events.on('beforeunload', fn) }
 }
-const Type = new TYPE()
-const get = (q, target)=>{
-    const R = document.querySelector(':root')
-    return (!Type.isStr(q)) ? R : (Type.isEl(target) ? target : R).querySelector(q)
-}
-const gets = (q, target)=>[...(target ? target : document.body).querySelectorAll(q)]
-const set = (target, ...elements)=>target.replaceWith(...elements)
-const add = (el, ...children)=>{
-    const frag = document.createDocumentFragment();
-    for (let child of children.flat(Infinity)) { frag.append(child) }
-    el.append(frag)
-}
-const mixin = (el)=>{
-    // 以下のようにアクセスしたい（CSSキー名を非文字列にしたい）
-    // el.attr.[任意文字列]          // getter
-    // el.attr.[任意文字列] = 任意値 // setter
-    /*
-    const handler = v=>({get:(t,k)=>ATTR.get.bind(t,k), set:(t,k,v)=>ATTR.set.bind(t,k,v)})
-    Object.defineProperty(el, 'attr', {
-        //get(){return new Proxy(ns=>new Proxy(tag, handler(ns)), handler())},
-        get(){return new Proxy({}, handler())},
-    })
-    */
-    Object.defineProperty(el, 'attr', {
-        get(){
-            if (!this._attr){this._attr=new Attr(this)}
-            return this._attr
-        },
-    })
-    Object.defineProperty(el, 'css', {
-        get(){
-            if (!this._css){this._css=new Css(this)}
-            return this._css
-        },
-    })
-    const on = new On(el)
-    el.on = on.on
-    el.off = on.off
-    /*
-    Object.defineProperty(el, 'on', {
-        get(){
-            if (!this._on){this._on=new On(this)}
-            return this._on
-        },
-    })
-    */
-}
-const tag = (ns, name, ...args) => {
-    const [props, ...children] = Type.isObj(args[0] ?? 0) ? args : [{}, ...args];
-    const el = ns ? document.createElementNS(ns, name) : document.createElement(name)
-    mixin(el)
-    for (let [k, v] of Object.entries(props)) {
-        const propSetter = Type.getSetter(el, k);
-        const setter = propSetter ? propSetter.bind(el, v) : null 
-            ?? (k.startsWith('on') && Type.isFn(v)) 
-            ? ()=>el.addEventListener(k.slice(2), v)
-            : el.setAttribute.bind(el, k, v);
-        setter()
-        // el[k] = v
-        // setter, 関数, setAttribute, の優先順でセットすべき
-        // 1. setter: HTMLElementを拡張したクラスの場合、HTML属性ではなくJSクラスのsetterとして代入すべき
-        // 2. 関数：on系属性値の場合、その値は関数であるべき。
-        // 3. setAttribute: 標準HTMLElementの属性値（文字列）として代入する
-    }
-    add(el, children)
-    return el
-}
-class ATTR {
-    static get(el,k){return el.getAttribute(k)}
-    //static get(el,k){console.log(el,k);return el.getAttribute(k)}
-    static set(el,k,v){el.setAttribute(k,v)}
-    static gets(el,ks){
-        Type.throw('Strs', ks);
-        return ks.map(k=>[k, this.get(el,k)]).toObject();
-    }
-    static sets(el,o) {
-        Type.throw('Obj', ks);
-        [...Object.entries(o)].map(([k,v])=>this.set(el,k,v));
-    }
-}
-class CSS {
-    static get(el,k){return getComputedStyle(el).getPropertyValue(k)}
-    static set(el,k,v){el.style.setProperty(k,v)}
-    static gets(el,ks){
-        Type.throw('Strs', ks)
-        return ks.map(k=>[k, this.get(el,k)]).toObject()
-    }
-    static sets(el,o){
-        Type.throw('Obj', ks);
-        [...Object.entries(o)].map(([k,v])=>this.set(el,k,v))
-    }
-}
-class ON {
-    static on(el, evNm, fn, options) {
-        const args = options ? [evNm, fn, options] : [evNm, fn]
-        el.addEventListener(...args)
-    }
-    static off(el, evNm, fn, options) {
-        const args = options ? [evNm, fn, options] : [evNm, fn]
-        el.removeEventListener(...args)
-    }
-}
-
-// 配列からオブジェクトに変換する
-Array.prototype.toObject = function() {
-    if (!this.every(v=>Array.isArray(v) && 2<=v.length)) { throw new TypeError(`[[key, value],...]であるべきです。`) }
-    return Object.assign(...this.map(([k,v]) => ({[k]:v})))
-}
-// style/attr の糖衣構文
-class Attr {
-    constructor(el){this._el=el}
-    get (k){console.log(this._el);return this._el.getAttribute(k)}
-    set (k,v){this._el.setAttribute(k,v)}
-    gets (ks){
-        Type.throw('Strs', ks);
-        return ks.map(k=>[k, this.get(k)]).toObject();
-    }
-    sets (o) {
-        Type.throw('Obj', ks);
-        [...Object.entries(o)].map(([k,v])=>this.set(k,v));
-    }
-}
-class Css {
-    constructor(el){this._el=el}
-    get(k){return getComputedStyle(this._el).getPropertyValue(k)}
-    set(k,v){this._el.style.setProperty(k,v)}
-    gets(ks){
-        Type.throw('Strs', ks)
-        return ks.map(k=>[k, this.get(k)]).toObject()
-    }
-    sets(o){
-        Type.throw('Obj', ks);
-        [...Object.entries(o)].map(([k,v])=>this.set(k,v))
-    }
-}
-class On {
-    constructor(el){this._el=el;this._handlers=[]}
-    on(evNm, fn, options) {
-        const args = options ? [evNm, fn, options] : [evNm, fn]
-        this._el.addEventListener(...args)
-        if (this._handlers.hasOwnProperty(evNm)){this._handlers[evNm].push(args)}
-        else {this._handlers[evNm] = [args]}
-    }
-    off(evNm, fn, options) {
-        if (!evNm && !fn) { // 全削除
-            for (let args of this._handlers) {
-                this._el.removeEventListener(...args)
+class XPath {
+    static getPath(el) {
+        if(el && el.parentNode) {
+            let xpath = this.getPath(el.parentNode) + '/' + el.tagName;
+            const s = [...Array(el.parentNode.childNodes.length)].map((_,i)=>e.tagName===el.tagName ? el.parentNode.childNodes[i] : null).filter(v=>v)
+            if(1 < s.length) {
+                for(var i=0; i<s.length; i++) {
+                    if(s[i] === el) {xpath += '[' + (i+1) + ']';break;}
+                }
             }
-        } else { // 単一削除
-            const args = options ? [evNm, fn, options] : [evNm, fn]
-            this._el.removeEventListener(...args)
-            if (this._handlers.hasOwnProperty(evNm)){
-                this._handlers = this._handlers.filter(v=>!(v.length===args.length && [...Array(v.length)].every((_,i)=>v[i]===args[i])))
-            }
+            return xpath.toLowerCase();
+        } else {return ''}
+    }
+    static getEl(xpath){
+        const a = this.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+        if (a.snapshotLength > 0) { return a.snapshotItem(0); }
+    }
+    static getEls(xpath){
+        const a = this.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+        return [...Array(a.snapshotLength)].map((_,i)=>a.snapshotItem(i))
+    }
+    static delEls(xpath){
+        const a = this.evaluate(xpath, document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null)
+        for (var i=0 ; i<a.snapshotLength; i++) {a.snapshotItem(i).parentNode.removeChild(a.snapshotItem(i))} 
+    }
+    static setEls(xpath, ...newEls){
+        const a = this.evaluate(xpath, document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null)
+        for (var i=0 ; i<a.snapshotLength; i++) {a.snapshotItem(i).replaceWith(...newEls)}
+    }
+}
+class EventListener {
+    constructor(el) {
+        this._el = el
+        this._map = new Map() // {click:[[fn,opt],...]}
+    }
+    get map() { return this._map }
+    // 同一evNmに一つだけ関数をセットする
+    on(evNm, fn, opt) { this.del(evNm); this.add(evNm, fn, opt); }
+    off(evNm) { this.del(evNm); }
+
+    // 同一evNmに複数関数をセットする
+    get(evNm, fn, opt) {
+        const t = this._map.get(evNm).filter(([FN,OPT])=>fn===FN&&opt===OPT)
+        return 0===t.length ? null : t[0]
+    }
+    has(evNm, fn, opt) { return !!this.get(evNm, fn, opt) }
+    //getFn(evNm, fn, opt) {const t=this.get(evNm, fn, opt); return t ? t[0] : null }
+    getFirstFn(evNm) {
+        const fnOpt = this._map.get(evNm)
+        return fnOpt ? fnOpt[0][0] : null
+    }
+    add(evNm, fn, opt) {
+        if (this._map.has(evNm)) {this._map.get(evNm).push([fn,opt])}
+        else {this._map.add(evNm, [[fn,opt]])}
+        return this._el.addEventListener(evNm, fn, opt)
+    }
+    del(evNm, fn, opt) {
+        if (!evNm && !fn && !opt) {this.clear()}
+        else if (evNm && !fn && !opt) { for (let [FN,OPT] of this._map.get(evNm)) {this._el.removeEventListener(evNm, FN, OPT)} }
+        else {
+            this._el.removeEventListener(evNm, fn, opt)
+            if (this._map.has(evNm)) {this._map.set(evNm, this._map.get(evNm).filter(([FN,OPT])=>fn!==FN&&opt!==OPT))}
         }
     }
+    set(evNm, fnOptO, fnOptN) { // fnOptO/N: [fn, opt]
+        if (this.get(evNm, ...fnOptO)) {
+            this.del(evNm, ...fnOptO)
+            this.add(evNm, ...fnOptN)
+        }
+    }
+    clear() {
+        for (let [k,v] of this._map) { this._el.removeEventListener(k, ...v) }
+        this._map.clear()
+    }
 }
-const handler = ns=>({get:(_, name)=>tag.bind(undefined, ns, name)})
-window.ml = {
-    tags: new Proxy(ns=>new Proxy(tag, handler(ns)), handler()),
-    add: add,
-    set: set,
-    get: get,
-    gets: gets,
-    on: ON.on,
-    off: ON.off,
-}
-Object.defineProperty(window.ml, 'root', {get(){document.querySelector(':root')}})
-Object.defineProperty(window.ml, 'css', {get(){return CSS}})
-Object.defineProperty(window.ml, 'attr', {get(){return ATTR}})
-//Object.defineProperty(window.ml, 'on', {get(){return ON}})
+Object.defineProperty(window, 'events', {get(){if(!this._events){this._events=new EventListener()};return this._events;}})
+Object.defineProperty(Element.prototype, 'events', {get(){if(!this._events){this._events=new EventListener()};return this._events;}})
+window.ml = new ML()
 })();
+
