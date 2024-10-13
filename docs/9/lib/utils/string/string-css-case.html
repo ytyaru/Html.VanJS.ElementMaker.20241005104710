@@ -1,0 +1,59 @@
+<meta charset="utf-8">
+<script src="../type.js"></script>
+<script src="../test/assertion.js"></script>
+<script src="../test/black-box.js"></script>
+<script src="../string/case.js"></script>
+<script src="../string/css-case.js"></script>
+<!--
+<script src="../js/util/test.js"></script>
+<script src="../lib/underscore/1.13.6/min.js"></script>
+<script src="../js/util/type.js"></script>
+<script src="../js/util/string/case.js"></script>
+-->
+<script>
+window.addEventListener('DOMContentLoaded', (event) => {
+    const a = new Assertion()
+    const bb = new BlackBox(a)
+
+    a.t(()=>'-webkit-transition'.cssCase.isP)
+    a.t(()=>'--main-color'.cssCase.isV)
+    a.f(()=>'--main-color'.cssCase.isP)
+    a.f(()=>'-webkit-transition'.cssCase.isV)
+
+    a.t(()=>'_webkitTransition'.cssCase.isPj)
+    a.t(()=>'webkitTransition'.cssCase.isPjt)
+    a.t(()=>'__mainColor'.cssCase.isVj)
+    a.t(()=>'mainColor'.cssCase.isVjt)
+    a.f(()=>''.cssCase.isPj)
+    a.f(()=>''.cssCase.isPjt)
+    a.f(()=>''.cssCase.isVj)
+    a.f(()=>''.cssCase.isVjt)
+
+    a.t(()=>'-webkit-transition'==='_webkitTransition'.cssCase.p)
+    a.t(()=>'_webkitTransition'==='-webkit-transition'.cssCase.pj)
+    a.t(()=>'webkitTransition'==='-webkit-transition'.cssCase.pjt)
+
+    a.t(()=>'--main-color'==='__mainColor'.cssCase.v)
+    a.t(()=>'__mainColor'==='--main-color'.cssCase.vj)
+    a.t(()=>'mainColor'==='--main-color'.cssCase.vjt)
+
+    console.log('-webkit-transition'.cssCase.pj)
+    console.log('--main-color'.cssCase.vj)
+    console.log('-webkit-transition'.cssCase.pjt)
+    console.log('--main-color'.cssCase.vjt)
+
+    console.log('-webkit-transition'.cssCase.isP)
+    console.log('--main-color'.cssCase.isV)
+    console.log('--main-color'.cssCase.isP)
+    console.log('-webkit-transition'.cssCase.isV)
+
+
+    a.fin()
+})
+</script>
+
+<h1></h1>
+<header></header>
+<main></main>
+<footer></footer>
+
