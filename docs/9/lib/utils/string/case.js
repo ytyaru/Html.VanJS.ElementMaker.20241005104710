@@ -25,7 +25,7 @@ class _StringCase {
         return 0===patterns.length ? '' : patterns[0][0]
     }
 //    isSomeCase(str) { return ['Chain','Snake','Camel','Pascal','Constant','Title'].map(m=>this[`is${m}`](str)).some(b=>b) }
-    isSomeCase(str) { return this.Names.map(n=>this[`is${n.capitalize()}`](str)).some(b=>b) }
+    isSomeCase(str) { return this.allNames.map(n=>this[`is${n.capitalize()}`](str)).some(b=>b) }
     //isChain(str) {return /^[a-z][a-z0-9\-]+$/g.test(str)}
     //isChain(str) {return /[a-z][a-z0-9]{0,}(\-[a-z0-9]+){0,}/.test(str)}
     isChain(str) {return /^[a-z][a-z0-9]{0,}(\-[a-z0-9]+){0,}$/.test(str)}

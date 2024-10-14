@@ -1,0 +1,178 @@
+<meta charset="utf-8">
+<script src="../type.js"></script>
+<script src="../string/case.js"></script>
+<script src="../string/p-case.js"></script>
+<script src="../array/compare.js"></script>
+<script src="../test/assertion.js"></script>
+<script src="../test/black-box.js"></script>
+<!--
+<script src="../js/util/test.js"></script>
+<script src="../lib/underscore/1.13.6/min.js"></script>
+<script src="../js/util/type.js"></script>
+<script src="../js/util/string/case.js"></script>
+-->
+<script>
+window.addEventListener('DOMContentLoaded', (event) => {
+    const a = new Assertion()
+    const bb = new BlackBox(a)
+//    console.log(''.pCase.allNames)
+    a.t(()=>Type.isIns(''.pCase))
+    a.t(()=>{
+        const names = 'chain,snake,camel,pascal,constant,low,up'.split(',')
+        return names.every(n=>''.pCase.allNames.includes(n))
+    })
+//    console.log('my-name'.pCase.name)
+    a.t(()=>'-my-name-is'.pCase.name==='chain')
+    a.t(()=>'_my_name_is'.pCase.name==='snake')
+    a.t(()=>'_myNameIs'.pCase.name==='camel')
+    a.t(()=>'_MyNameIs'.pCase.name==='pascal')
+    a.t(()=>'_MY_NAME_IS'.pCase.name==='constant')
+//    a.t(()=>'My name is'.pCase.name==='title')
+    console.log('_mynameis'.pCase.name)
+    console.log('mynameis'.pCase.name)
+    a.t(()=>'_mynameis'.pCase.name==='low')
+    console.log('_MYNAMEIS'.pCase.name)
+    console.log('MYNAMEIS'.pCase.name)
+    a.t(()=>'_MYNAMEIS'.pCase.name==='up')
+
+    console.log('-my-name-is'.pCase.chain)
+    a.t(()=>'-my-name-is'.pCase.chain==='-my-name-is')
+    a.t(()=>'-my-name-is'.pCase.snake==='_my_name_is')
+    a.t(()=>'-my-name-is'.pCase.camel==='_myNameIs')
+    a.t(()=>'-my-name-is'.pCase.pascal==='_MyNameIs')
+    a.t(()=>'-my-name-is'.pCase.constant==='_MY_NAME_IS')
+//    a.t(()=>'my-name-is'.pCase.title==='My name is')
+    a.t(()=>'-my-name-is'.pCase.low==='-my-name-is')
+    a.t(()=>'-my-name-is'.pCase.up==='-MY-NAME-IS')
+
+    a.t(()=>'_my_name_is'.pCase.chain==='-my-name-is')
+    a.t(()=>'_my_name_is'.pCase.snake==='_my_name_is')
+    a.t(()=>'_my_name_is'.pCase.camel==='_myNameIs')
+    a.t(()=>'_my_name_is'.pCase.pascal==='_MyNameIs')
+    a.t(()=>'_my_name_is'.pCase.constant==='_MY_NAME_IS')
+//    a.t(()=>'my_name_is'.pCase.title==='My name is')
+    a.t(()=>'_my_name_is'.pCase.low==='_my_name_is')
+    a.t(()=>'_my_name_is'.pCase.up==='_MY_NAME_IS')
+
+    a.t(()=>'_myNameIs'.pCase.chain==='-my-name-is')
+    a.t(()=>'_myNameIs'.pCase.snake==='_my_name_is')
+    a.t(()=>'_myNameIs'.pCase.camel==='_myNameIs')
+    a.t(()=>'_myNameIs'.pCase.pascal==='_MyNameIs')
+    a.t(()=>'_myNameIs'.pCase.constant==='_MY_NAME_IS')
+//    a.t(()=>'_myNameIs'.pCase.title==='My name is')
+    a.t(()=>'_myNameIs'.pCase.low==='_mynameis')
+    a.t(()=>'_myNameIs'.pCase.up==='_MYNAMEIS')
+
+    a.t(()=>'_MyNameIs'.pCase.chain==='-my-name-is')
+    a.t(()=>'_MyNameIs'.pCase.snake==='_my_name_is')
+    a.t(()=>'_MyNameIs'.pCase.camel==='_myNameIs')
+    a.t(()=>'_MyNameIs'.pCase.pascal==='_MyNameIs')
+    a.t(()=>'_MyNameIs'.pCase.constant==='_MY_NAME_IS')
+//    a.t(()=>'_MyNameIs'.pCase.title==='My name is')
+    a.t(()=>'_MyNameIs'.pCase.low==='_mynameis')
+    a.t(()=>'_MyNameIs'.pCase.up==='_MYNAMEIS')
+
+    a.t(()=>'_MY_NAME_IS'.pCase.chain==='-my-name-is')
+    a.t(()=>'_MY_NAME_IS'.pCase.snake==='_my_name_is')
+    a.t(()=>'_MY_NAME_IS'.pCase.camel==='_myNameIs')
+    a.t(()=>'_MY_NAME_IS'.pCase.pascal==='_MyNameIs')
+    a.t(()=>'_MY_NAME_IS'.pCase.constant==='_MY_NAME_IS')
+//    a.t(()=>'_MY_NAME_IS'.pCase.title==='My name is')
+    a.t(()=>'_MY_NAME_IS'.pCase.low==='_my_name_is')
+    a.t(()=>'_MY_NAME_IS'.pCase.up==='_MY_NAME_IS')
+
+//    a.t(()=>'_My name is'.pCase.chain==='-my-name-is')
+//    a.t(()=>'_My name is'.pCase.snake==='_my_name_is')
+//    a.t(()=>'_My name is'.pCase.camel==='_myNameIs')
+//    a.t(()=>'_My name is'.pCase.pascal==='_MyNameIs')
+//    a.t(()=>'_My name is'.pCase.constant==='_MY_NAME_IS')
+//    a.t(()=>'_My name is'.pCase.title==='My name is')
+//    a.t(()=>'_My name is'.pCase.low==='_my name is')
+//    a.t(()=>'_My name is'.pCase.up==='_MY NAME IS')
+
+//    console.log('my-name-is'.pCase.names)
+    a.t(()=>'-my-name-is'.pCase.names.compare(['chain','low']))
+    a.t(()=>'_my_name_is'.pCase.names.compare(['snake','low']))
+    a.t(()=>'_myNameIs'.pCase.names.compare(['camel']))
+    a.t(()=>'_MyNameIs'.pCase.names.compare(['pascal']))
+    a.t(()=>'_MY_NAME_IS'.pCase.names.compare(['constant','up']))
+//    a.t(()=>'_My name is'.pCase.names.compare(['title']))
+    console.log('html'.pCase.names)
+    console.log('HTML'.pCase.names)
+    console.log('_html'.pCase.names)
+    console.log('_HTML'.pCase.names)
+    console.log('__html'.pCase.names)
+    console.log('__HTML'.pCase.names)
+    console.log('-html'.pCase.names)
+    console.log('-HTML'.pCase.names)
+    console.log('--html'.pCase.names)
+    console.log('--HTML'.pCase.names)
+//    console.log('html'==='html'.toLowerCase())
+    a.t(()=>'html'.pCase.names.compare([]))
+    a.t(()=>'HTML'.pCase.names.compare([]))
+    a.t(()=>'-html'.pCase.names.compare(['chain','low']))
+    a.t(()=>'-HTML'.pCase.names.compare(['up']))
+    a.t(()=>'_html'.pCase.names.compare(['snake','camel','low']))
+    a.t(()=>'_HTML'.pCase.names.compare(['constant','up']))
+    a.t(()=>'--html'.pCase.names.compare(['chain','low']))
+    a.t(()=>'--HTML'.pCase.names.compare(['up']))
+    a.t(()=>'__html'.pCase.names.compare(['snake','camel','low']))
+    a.t(()=>'__HTML'.pCase.names.compare(['constant','up']))
+    a.t(()=>'---html'.pCase.names.compare(['chain','low']))
+    a.t(()=>'---HTML'.pCase.names.compare(['up']))
+    a.t(()=>'___html'.pCase.names.compare(['snake','camel','low']))
+    a.t(()=>'___HTML'.pCase.names.compare(['constant','up']))
+
+
+
+
+    // 不正値系
+    a.t(()=>''.pCase.name==='')
+    a.t(()=>'-_'.pCase.name==='')
+    a.t(()=>'html'.pCase.name==='chain')    // chain,snake,camelでありうるが先出のchainである。正確にはlower。
+    a.t(()=>'HTML'.pCase.name==='constant') // 大文字が連続した場合は他の型に変換できないため不正値として扱うべきでは？
+    a.t(()=>'HTMLs'.pCase.name==='')  
+    a.t(()=>'aHTML'.pCase.name==='')
+
+    console.log('_HTML'.pCase.name)
+    console.log('-HTML'.pCase.name)
+    console.log('-html'.pCase.name)
+    console.log('HTMLs'.pCase.chain)       // 大文字が連続しつつ小文字も含まれると狂ってしまう！
+    console.log('HTMLs'.pCase.snake)
+    console.log('HTMLs'.pCase.camel)
+    console.log('HTMLs'.pCase.pascal)
+    console.log('HTMLs'.pCase.constant)
+    console.log('HTMLs'.pCase.title)
+    console.log('HTMLs'.pCase.low)
+    console.log('HTMLs'.pCase.up)
+    console.log('writing-mode'.pCase.name)
+    console.log('-webkit-color'.pCase.name)
+    console.log('--main-color'.pCase.name)
+
+    
+
+    console.log('color'.pCase.camel)
+    console.log('background-color'.pCase.camel)
+    console.log('-webkit-transition'.pCase.camel)
+    console.log('--main-color'.pCase.camel)
+
+    console.log('color'.pCase.isChain)
+    console.log('background-color'.pCase.isChain)
+    console.log('-webkit-transition'.pCase.isChain)
+    console.log('--main-color'.pCase.isChain)
+
+//    console.log('-webkit-transition'.cssCase.pj)
+//    console.log('--main-color'.cssCase.vj)
+
+
+
+
+    a.fin()
+})
+</script>
+
+<h1></h1>
+<header></header>
+<main></main>
+<footer></footer>
+
