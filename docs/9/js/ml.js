@@ -34,7 +34,11 @@ class ML { // 要素を操作する（生成、追加、取得、置換、削除
     setX(xpath,...es){return XPath.setEls(xpath, ...es)}
     delX(xpath){return XPath.delEls(xpath)}
     // イベント系
-    get onStart() {return window.events.events.getFirstFn('DOMContentLoaded')}
+//    on(el, evNm, fn, opt) { el.addEventListener(evNm, fn, opt) }
+//    off(el, evNm, fn, opt) { el.removeEventListener(evNm, fn, opt) }
+    on(el, evNm, fn, opt) { el.events.on(evNm, fn, opt) }
+    off(el, evNm, fn, opt) { el.events.off(evNm, fn, opt) }
+    get onStart() {return window.events.getFirstFn('DOMContentLoaded')}
     set onStart(fn) { window.events.on('DOMContentLoaded', fn) }
     get onEnd() {return window.events.events.getFirstFn('beforeunload')}
     set onEnd(fn) { window.events.on('beforeunload', fn) }
@@ -71,6 +75,7 @@ class XPath {
 }
 class EventListener {
     constructor(el) {
+        console.log(el)
         this._el = el
         this._map = new Map() // {click:[[fn,opt],...]}
     }
@@ -92,13 +97,14 @@ class EventListener {
     }
     add(evNm, fn, opt) {
         if (this._map.has(evNm)) {this._map.get(evNm).push([fn,opt])}
-        else {this._map.add(evNm, [[fn,opt]])}
+        else {this._map.set(evNm, [[fn,opt]])}
         return this._el.addEventListener(evNm, fn, opt)
     }
     del(evNm, fn, opt) {
         if (!evNm && !fn && !opt) {this.clear()}
-        else if (evNm && !fn && !opt) { for (let [FN,OPT] of this._map.get(evNm)) {this._el.removeEventListener(evNm, FN, OPT)} }
+        else if (evNm && !fn && !opt && this._map.has(evNm)) { for (let [FN,OPT] of this._map.get(evNm)) {this._el.removeEventListener(evNm, FN, OPT)} }
         else {
+            console.log(this._el)
             this._el.removeEventListener(evNm, fn, opt)
             if (this._map.has(evNm)) {this._map.set(evNm, this._map.get(evNm).filter(([FN,OPT])=>fn!==FN&&opt!==OPT))}
         }
@@ -114,8 +120,8 @@ class EventListener {
         this._map.clear()
     }
 }
-Object.defineProperty(window, 'events', {get(){if(!this._events){this._events=new EventListener()};return this._events;}})
-Object.defineProperty(Element.prototype, 'events', {get(){if(!this._events){this._events=new EventListener()};return this._events;}})
+Object.defineProperty(window, 'events', {get(){if(!this._events){this._events=new EventListener(this)};return this._events;}})
+Object.defineProperty(Element.prototype, 'events', {get(){if(!this._events){this._events=new EventListener(this)};return this._events;}})
 window.ml = new ML()
 })();
 

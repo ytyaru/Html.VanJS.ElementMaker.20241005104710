@@ -3,11 +3,17 @@
 // crel.要素名({属性名:属性値,...}, 子要素, ...)
 ;(function(){
 function camel2Chain(s) { return ifel(s.case.isCamel, ()=>s.case.chain,
+    s.pCase.isCamel, ()=>s.pCase.chain) }
+function chain2Camel(s) { return ifel(s.case.isChain, ()=>s.case.camel,
+    s.pCase.isChain, ()=>s.pCase.camel) }
+/*
+function camel2Chain(s) { return ifel(s.case.isCamel, ()=>s.case.chain,
     s.cssCase.isP, ()=>s.cssCase.pj,
     s.cssCase.isV, ()=>s.cssCase.vj) }
 function chain2Camel(s) { return ifel(s.case.isChain, ()=>s.case.camel,
     s.cssCase.isPj, ()=>s.cssCase.p,
     s.cssCase.isVj, ()=>s.cssCase.v) }
+*/
 //function isCssKey(s) { return s.case.isChain || s.cssCase.p || s.cssCase.v }
 /*
 function isLower(v){return v===v.toLowerCase()}
@@ -53,14 +59,18 @@ function matchKey(k, ...args) {
 Object.defineProperties(Element.prototype, {
     attr: { // HTML Element attribute
         get() { return new Proxy(this, {
-            get(t,k){return t.getAttribute(key(k))}, 
-            set(t,k,v){isNU(v) ? t.removeAttribute(key(k)) : t.setAttribute(key(k),v)},
+//            get(t,k){return t.getAttribute(key(k))}, 
+//            set(t,k,v){isNU(v) ? t.removeAttribute(key(k)) : t.setAttribute(key(k),v)},
+            get(t,k){return t.getAttribute(k.case.chain)}, 
+            set(t,k,v){Type.isNU(v) ? t.removeAttribute(k.case.chain) : t.setAttribute(k.case.chain,v)},
         }) },
     },
     data: { // HTML Element data-attribute
         get() { return new Proxy(this, {
-            get(t,k){return t.attr[`data-${key(k)}`]}, 
-            set(t,k,v){t.attr[`data-${key(k)}`]=v}
+//            get(t,k){return t.attr[`data-${key(k)}`]}, 
+//            set(t,k,v){t.attr[`data-${key(k)}`]=v}
+            get(t,k){return t.attr[`data-${k.case.chain}`]}, 
+            set(t,k,v){t.attr[`data-${k.case.chain}`]=v}
         }) },
     },
     cp: { // CSS variable / CSS Custom Property  
@@ -106,7 +116,8 @@ Object.defineProperties(Element.prototype, {
     },
     cps: { // CSS variable / CSS Custom Property  
         //get() { return ([...this.computedStyleMap().entries()].filter(([k,v])=>k.startsWith('--')).map(kv=>[prop(kv[0].replace(/\-+/,'')), kv[1].toString()])).toObject() },
-        get() { return ([...this.computedStyleMap().entries()].filter(([k,v])=>k.startsWith('--')).map(kv=>[kv[0].replace(/\-+/,'')).case.camel, kv[1].toString()])).toObject() },
+        //get() { return ([...this.computedStyleMap().entries()].filter(([k,v])=>k.startsWith('--')).map(kv=>[kv[0].replace(/\-+/,'')).case.camel, kv[1].toString()])).toObject() },
+        get() { return ([...this.computedStyleMap().entries()].filter(([k,v])=>k.startsWith('--')).map(kv=>[kv[0].pCase.camelT, kv[1].toString()])).toObject() },
         set(o) {
             if (Type.isNU(o) || Type.isObj(o)) {
                 [...Object.keys(this.cps)].map(k=>this.data[k]=null) // 全削除
@@ -131,16 +142,19 @@ Object.defineProperties(Element.prototype, {
             const kvs = []
             for (let kv of (this.getAttribute('style') ?? '').split(';')) {
                 const k = kv.split(':')[0].trim()
-                if (''!==k) {kvs.push([chain2Camel(k), this.style[k.cssCase.is ? k : chain2Camel(k)]])}
+                const ck = chain2Camel(k)
+                if (''!==k) {kvs.push([ck, this.style[ck]])}
+                //if (''!==k) {kvs.push([chain2Camel(k), this.style[k.cssCase.is ? k : chain2Camel(k)]])}
                 //if (''!==k) {kvs.push([chain2Camel(k),this.style[prop(k)]])}
                 //if (''!==k) {kvs.push([k.case.camel, this.style[k.cssCase.camel]])} // color, n-m, -webkit-color, --main-color
             }
-            return a2o(kvs)
+//            return a2o(kvs)
+            return kvs.toObject()
         },
         set(v) {
-            if (isNU(v) || isObj(v)) {
+            if (Type.isNU(v) || Type.isObj(v)) {
                 this.removeAttribute('style');
-                if (isObj(v)) { for (let [K,V] of Object.entries(v)) { this.style[K] = V } } // 各キーに代入
+                if (Type.isObj(v)) { for (let [K,V] of Object.entries(v)) { this.style[K] = V } } // 各キーに代入
             }
         },
     },
@@ -493,6 +507,5 @@ Object.defineProperties(Node.prototype, {
 })
 */
 
-})();
 
 })();

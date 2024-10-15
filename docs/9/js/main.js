@@ -21,25 +21,37 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
     console.log(ml.get('a').textContent)
     console.log(ml.get('a').attr)
-    console.log(ml.get('a').attr.get)
-    console.log(ml.get('a').attr.get('href'))
+//    console.log(ml.get('a').attr.get)
+//    console.log(ml.get('a').attr.get('href'))
+    console.log(ml.get('a').attr.href)
     console.log(ml.get('circle').attr)
-    console.log(ml.get('circle').attr.get('cx'))
+//    console.log(ml.get('circle').attr.get('cx'))
+    console.log(ml.get('circle').attr.cx)
 
     // ml.tags で生成した要素は attr,css,on があるが、それ以外の方法で生成した要素には無い。
-    console.log(document.querySelector('a').attr.get('href'))
+//    console.log(document.querySelector('a').attr.get('href'))
+    console.log(document.querySelector('a').attr.href)
 //    const code = document.createElement('code')
 //    console.log(code.attr.get('href')) // TypeError: Cannot read property 'get' of undefined
     
-    console.log(ml.attr)
-    console.log(ml.css)
+    console.log(ml.attrs)
+//    console.log(ml.css)
+    console.log(ml.cps)
     console.log(ml.on)
-    console.log(ml.attr.get(ml.get('circle'), 'r'))
-    ml.attr.set(ml.get('circle'), 'r', 5)
-    console.log(ml.attr.get(ml.get('circle'), 'r'))
+//    console.log(ml.attr.get(ml.get('circle'), 'r'))
+    console.log(ml.get('circle').attr.r)
+    //ml.attr.set(ml.get('circle'), 'r', 5)
+    ml.get('circle').attr.r = 5
+//    console.log(ml.attr.get(ml.get('circle'), 'r'))
+    console.log(ml.get('circle').attr.r)
 
-    ml.css.set(ml.get('h1'), 'color', 'green')
-    console.log(ml.css.get(ml.get('h1'), 'color'))
+    //ml.css.set(ml.get('h1'), 'color', 'green')
+    ml.get('h1').style.color = 'green'
+    //console.log(ml.css.get(ml.get('h1'), 'color'))
+    console.log(ml.get('h1').style.color)
+
+    console.log(ml.get('circle'))
+    console.log(ml.get('circle').events)
 
     function onClick(e){console.log('click:', e)}
     //ml.on(ml.get('circle'), 'click', (e)=>{console.log('click:', e)})
@@ -59,7 +71,8 @@ window.addEventListener('DOMContentLoaded', (event) => {
     console.log(ml.get('rect'))
     console.log(ml.get('rect').constructor)
     console.log(ml.get('rect').attr)
-    console.log(ml.get('rect').attr.get('width'))
+    //console.log(ml.get('rect').attr.get('width'))
+    console.log(ml.get('rect').attr.width)
     
 
 });
