@@ -73,12 +73,23 @@ Object.defineProperties(Element.prototype, {
             set(t,k,v){t.attr[`data-${k.case.chain}`]=v}
         }) },
     },
-    cp: { // CSS variable / CSS Custom Property  
+    cp: { // CSS variable / CSS Custom Property  style
         get() { return new Proxy(this, {
-            get(t,k){return getComputedStyle(t).getPropertyValue(`--${key(k)}`)}, 
-            set(t,k,v){isNU(v) ? t.style.removeProperty(`--${key(k)}`) : t.style.setProperty(`--${key(k)}`,v)}
+//            get(t,k){return getComputedStyle(t).getPropertyValue(`--${key(k)}`)}, 
+//            set(t,k,v){Type.isNU(v) ? t.style.removeProperty(`--${key(k)}`) : t.style.setProperty(`--${key(k)}`,v)}
+            //get(t,k){return getComputedStyle(t).getPropertyValue(`--${k.case.chain}`)}, 
+            //get(t,k){console.log(k,k.case.chain,t.style.getPropertyValue(`--${k.case.chain}`),getComputedStyle(t).getPropertyValue(`--${k.case.chain}`));return getComputedStyle(t).getPropertyValue(`--${k.case.chain}`)}, 
+            get(t,k){console.log(k,k.case.chain,t.style.getPropertyValue(`--${k.case.chain}`),t.style.getPropertyValue(`--${k.case.chain}`));return t.style.getPropertyValue(`--${k.case.chain}`)}, // getComputedStyle(t).getPropertyValue(...)
+            set(t,k,v){Type.isNU(v) ? t.style.removeProperty(`--${k.case.chain}`) : t.style.setProperty(`--${k.case.chain}`,v)}
         }) },
     },
+    CP: { // CSS variable / CSS Custom Property  getComputedStyle
+        get() { return new Proxy(this, {
+            get(t,k){return getComputedStyle(t).getPropertyValue(`--${k.case.chain}`)}, 
+//            set(t,k,v){Type.isNU(v) ? t.style.removeProperty(`--${k.case.chain}`) : t.style.setProperty(`--${k.case.chain}`,v)}
+        }) },
+    },
+
     class: { // HTML Element attribute class
         get() { return new Proxy(this, {
             get(t,k){
@@ -96,7 +107,8 @@ Object.defineProperties(Element.prototype, {
     // 複数形（objectによる一括取得＆一括設定）
     attrs: {
         //get() { return a2o([...Array(this.attributes.length)].map((_,i)=>{const a=this.attributes.item(i);return [a.name, a.value]})) },
-        get() { return ([...Array(this.attributes.length)].map((_,i)=>{const a=this.attributes.item(i);return [a.name, a.value]})).toObject() },
+        //get() { return ([...Array(this.attributes.length)].map((_,i)=>{const a=this.attributes.item(i);return [a.name, a.value]})).toObject() },
+        get() { return ([...Array(this.attributes.length)].map((_,i)=>{const a=this.attributes.item(i);return [a.name, a.value]}).filter(v=>v)).toObject() },
         set(v) {
             if (Type.isNU(v) || Type.isObj(v)) {
                 [...Object.keys(this.attrs)].map(k=>this.attr[k]=null) // 全削除
@@ -116,15 +128,22 @@ Object.defineProperties(Element.prototype, {
     },
     cps: { // CSS variable / CSS Custom Property  
         //get() { return ([...this.computedStyleMap().entries()].filter(([k,v])=>k.startsWith('--')).map(kv=>[prop(kv[0].replace(/\-+/,'')), kv[1].toString()])).toObject() },
-        //get() { return ([...this.computedStyleMap().entries()].filter(([k,v])=>k.startsWith('--')).map(kv=>[kv[0].replace(/\-+/,'')).case.camel, kv[1].toString()])).toObject() },
-        get() { return ([...this.computedStyleMap().entries()].filter(([k,v])=>k.startsWith('--')).map(kv=>[kv[0].pCase.camelT, kv[1].toString()])).toObject() },
+//        get() { return ([...this.computedStyleMap().entries()].filter(([k,v])=>k.startsWith('--')).map(kv=>[kv[0].replace(/\-+/,'').case.camel, kv[1].toString()])).toObject() },
+        //get() { return ([...this.computedStyleMap().entries()].filter(([k,v])=>k.pCase.isChain).map(kv=>[kv[0].pCase.camelT, kv[1].toString()])).toObject() },
+        get() { return ([...Array(this.attributes.length)].map((_,i)=>{const a=this.attributes.item(i);return [a.name, a.value]}).filter(([k,v])=>k.startsWith('--')).map(([k,v])=>[k.pCase.camelT, v.toString()])).toObject() },
         set(o) {
             if (Type.isNU(o) || Type.isObj(o)) {
-                [...Object.keys(this.cps)].map(k=>this.data[k]=null) // 全削除
+                [...Object.keys(this.cps)].map(k=>this.cp[k]=null) // 全削除
                 if (Type.isObj(o)) { for (let [K,V] of Object.entries(o)) { this.cp[K] = V } } // 各キーに代入
             }
         },
     },
+    CPS: { // CSS variable / CSS Custom Property  
+        //get() { return ([...this.computedStyleMap().entries()].filter(([k,v])=>k.startsWith('--')).map(kv=>[prop(kv[0].replace(/\-+/,'')), kv[1].toString()])).toObject() },
+//        get() { return ([...this.computedStyleMap().entries()].filter(([k,v])=>k.startsWith('--')).map(kv=>[kv[0].replace(/\-+/,'').case.camel, kv[1].toString()])).toObject() },
+        get() { return ([...this.computedStyleMap().entries()].filter(([k,v])=>k.pCase.isChain).map(kv=>[kv[0].pCase.camelT, kv[1].toString()])).toObject() },
+    },
+
     classs: {
         get() { return this.className.split(' ') },
         set(v) {
@@ -143,7 +162,8 @@ Object.defineProperties(Element.prototype, {
             for (let kv of (this.getAttribute('style') ?? '').split(';')) {
                 const k = kv.split(':')[0].trim()
                 const ck = chain2Camel(k)
-                if (''!==k) {kvs.push([ck, this.style[ck]])}
+                //if (''!==k) {kvs.push([ck, this.style[ck]])}
+                if (''!==k) {kvs.push([ck, this.style[ck] ?? this.style.getPropertyValue(k)])}
                 //if (''!==k) {kvs.push([chain2Camel(k), this.style[k.cssCase.is ? k : chain2Camel(k)]])}
                 //if (''!==k) {kvs.push([chain2Camel(k),this.style[prop(k)]])}
                 //if (''!==k) {kvs.push([k.case.camel, this.style[k.cssCase.camel]])} // color, n-m, -webkit-color, --main-color
@@ -154,7 +174,8 @@ Object.defineProperties(Element.prototype, {
         set(v) {
             if (Type.isNU(v) || Type.isObj(v)) {
                 this.removeAttribute('style');
-                if (Type.isObj(v)) { for (let [K,V] of Object.entries(v)) { this.style[K] = V } } // 各キーに代入
+                //if (Type.isObj(v)) { for (let [K,V] of Object.entries(v)) { this.style[K] = V } } // 各キーに代入
+                if (Type.isObj(v)) { for (let [K,V] of Object.entries(v)) { K.startsWith('__') ? this.style.setProperty(K.pCase.chain, V) : (this.style[K] = V); } } // 各キーに代入
             }
         },
     },

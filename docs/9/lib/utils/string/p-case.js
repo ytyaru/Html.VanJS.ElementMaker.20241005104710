@@ -112,6 +112,13 @@ class PrefixCase {
     get allNames() {return SC.allNames}
     get names() {return SC.getNames(this._s)}
     get name() {return SC.getName(this._s)}
+
+    get list() {return SC.split(this._s)}
+    get prefix() {return SC.get(this._s)}
+    get main() {return SC.trim(this._s)}
+    get hasP() {return SC.has(this._s)}
+    get lenP() {return SC.len(this._s)}
+
     get chain() {return SC.toChain(this._s)}
     get snake() {return SC.toSnake(this._s)}
     get camel() {return SC.toCamel(this._s)}

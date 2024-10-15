@@ -74,7 +74,15 @@ window.addEventListener('DOMContentLoaded', (event) => {
     //console.log(ml.get('rect').attr.get('width'))
     console.log(ml.get('rect').attr.width)
     
-
+    ml.root.cp.mainColor = 'black'
+    console.log(ml.root.cp.mainColor)
+    console.log(ml.root.styles)
+    console.log(ml.root.cps)
+    console.log(ml.root.style['--main-color'])
+    console.log(ml.root.style['mainColor'])
+    console.log(ml.root.style['__mainColor'])
+    console.log(ml.root.style.getPropertyValue('--main-color'))
+    console.log(ml.root.cp.mainColor)
 });
 window.addEventListener('beforeunload', (event) => {
     console.log('beforeunload!!');

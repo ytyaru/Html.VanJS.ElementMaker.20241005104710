@@ -1,0 +1,71 @@
+<meta charset="utf-8">
+<script src="../lib/utils/type.js"></script>
+<script src="../lib/utils/syntax-sugar/ifel.js"></script>
+<script src="../lib/utils/string/case.js"></script>
+<script src="../lib/utils/string/p-case.js"></script>
+<script src="../lib/utils/array/to-object.js"></script>
+<script src="../lib/utils/array/compare.js"></script>
+<script src="../lib/utils/test/assertion.js"></script>
+<script src="../lib/utils/test/black-box.js"></script>
+<script src="element-sugar.js"></script>
+<script>
+window.addEventListener('DOMContentLoaded', (event) => {
+    const a = new Assertion()
+    const bb = new BlackBox(a)
+
+    // プロパティ存在確認
+    const el = document.createElement('p')
+    'attr,data,cp,class,attrs,datas,cps,classs,styles,E,N,get,gets,set,del,getX,getXs,setX,delX'.split(',').map(k=>{console.log(k);return a.t(()=>!!el[k])})
+    a.t(''===el.xpath)
+
+    // id:                標準API（グローバル・アトリビュート）  キー未存在時''
+    // [gs]etAttribute(): 標準API                                キー未存在時null
+    // attr:              今回実装した機能                       キー未存在時null
+    a.t(''===el.id)
+    a.t(null===el.getAttribute('id'))
+    a.t(null===el.attr.id)
+    el.attr.id = 'some-id'
+    a.t('some-id'===el.id)
+    a.t('some-id'===el.attr.id)
+    a.t('some-id'===el.getAttribute('id'))
+    el.attr.id = ''
+    a.t(''===el.id)
+    a.t(''===el.attr.id)
+    a.t(''===el.getAttribute('id'))
+    el.attr.id = null
+    a.t(''===el.id)
+    a.t(null===el.attr.id)
+    a.t(null===el.getAttribute('id'))
+
+    // dataset: 標準API              キー未存在時undefined
+    // data:    今回実装した機能     キー未存在時null（getAttribute時と同じ）
+    a.t(undefined===el.dataset.myName)
+    a.t(null===el.data.myName)
+    el.data.myName = '山田'
+    a.t('山田'===el.dataset.myName)
+    a.t('山田'===el.data.myName)
+
+    // style.getPropertyValue: 標準API           キー未存在時''
+    // cp                    : 今回実装した機能  キー未存在時''
+    console.log(getComputedStyle(el).getPropertyValue('--my-name'))
+    console.log(el.style.getPropertyValue('--my-name'))
+    console.log(el.cp.myName)
+    a.t(''===getComputedStyle(el).getPropertyValue('--my-name'))
+    a.t(''===el.style.getPropertyValue('--my-name'))
+    a.t(''===el.cp.myName)
+    el.cp.myName = '鈴木'
+    a.t('鈴木'===el.style.getPropertyValue('--my-name'))
+    a.t('鈴木'===el.cp.myName)
+    console.log(getComputedStyle(el).getPropertyValue('--my-name')) // ''
+    console.log(el.style.getPropertyValue('--my-name'))             // 鈴木
+    console.log(el.cp.myName)                                       // 鈴木
+
+    a.fin()
+})
+</script>
+
+<h1></h1>
+<header></header>
+<main></main>
+<footer></footer>
+

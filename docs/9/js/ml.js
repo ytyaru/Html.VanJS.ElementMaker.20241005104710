@@ -42,6 +42,28 @@ class ML { // 要素を操作する（生成、追加、取得、置換、削除
     set onStart(fn) { window.events.on('DOMContentLoaded', fn) }
     get onEnd() {return window.events.events.getFirstFn('beforeunload')}
     set onEnd(fn) { window.events.on('beforeunload', fn) }
+
+}
+class Css {
+    constructor() {
+        this._v = return new Proxy(this, {
+            get(t,k){return ml.root.style.getPropertyValue(`--${k.case.chain}`)},
+            set(t,k,v){Type.isNU(v) ? ml.root.style.removeProperty(`--${k.case.chain}`) : ml.root.style.setProperty(`--${k.case.chain}`,v)}
+        });
+        this._V = return new Proxy(this, {
+            get(t,k){return getComputedStyle(ml.root).getPropertyValue(`--${k.case.chain}`)},
+//            set(t,k,v){Type.isNU(v) ? ml.root.style.removeProperty(`--${k.case.chain}`) : ml.root.style.setProperty(`--${k.case.chain}`,v)}
+        });
+        /*
+        this._cp = return new Proxy(this, {
+            get(t,k){return t.root.style.getPropertyValue(`--${k.case.chain}`)}, // getComputedStyle(t).getPropertyValue(...)
+            set(t,k,v){Type.isNU(v) ? t.root.style.removeProperty(`--${k.case.chain}`) : t.root.style.setProperty(`--${k.case.chain}`,v)}
+        });
+        */
+    }
+    get v() {return this._v} // CSS variable / CSS Custom Property  style
+    get V() {return this._V} // CSS variable / CSS Custom Property  getComputedStyle
+    get sheets() {return document.styleSheets}
 }
 class XPath {
     static getPath(el) {
@@ -123,5 +145,6 @@ class EventListener {
 Object.defineProperty(window, 'events', {get(){if(!this._events){this._events=new EventListener(this)};return this._events;}})
 Object.defineProperty(Element.prototype, 'events', {get(){if(!this._events){this._events=new EventListener(this)};return this._events;}})
 window.ml = new ML()
+window.css = new Css()
 })();
 

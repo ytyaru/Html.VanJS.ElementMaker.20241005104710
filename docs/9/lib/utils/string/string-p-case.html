@@ -218,6 +218,12 @@ window.addEventListener('DOMContentLoaded', (event) => {
     a.t(()=>'mynameis'.pCase.name==='')
     a.t(()=>'MYNAMEIS'.pCase.name==='')
 
+    // prefix
+    a.t(['--','my-name-is'].compare('--my-name-is'.pCase.list))
+    a.t('--'==='--my-name-is'.pCase.prefix)
+    a.t('my-name-is'==='--my-name-is'.pCase.main)
+    a.t('--my-name-is'.pCase.hasP)
+    a.t(2==='--my-name-is'.pCase.lenP)
 
 
     /*
