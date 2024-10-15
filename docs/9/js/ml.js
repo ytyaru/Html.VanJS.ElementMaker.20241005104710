@@ -46,11 +46,11 @@ class ML { // 要素を操作する（生成、追加、取得、置換、削除
 }
 class Css {
     constructor() {
-        this._v = return new Proxy(this, {
+        this._v = new Proxy(this, {
             get(t,k){return ml.root.style.getPropertyValue(`--${k.case.chain}`)},
             set(t,k,v){Type.isNU(v) ? ml.root.style.removeProperty(`--${k.case.chain}`) : ml.root.style.setProperty(`--${k.case.chain}`,v)}
         });
-        this._V = return new Proxy(this, {
+        this._V = new Proxy(this, {
             get(t,k){return getComputedStyle(ml.root).getPropertyValue(`--${k.case.chain}`)},
 //            set(t,k,v){Type.isNU(v) ? ml.root.style.removeProperty(`--${k.case.chain}`) : ml.root.style.setProperty(`--${k.case.chain}`,v)}
         });
