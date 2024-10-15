@@ -11,11 +11,16 @@ class _StringPrefixCase {
 //            'title':    {name:'title', delimiter:' ', method:'capitalize',  target:'all'},   // My name
         }
     }
+    get(s) { const m=s.match(/^[_\-]+/); return m[0] ?? '' }
     has(s) { return /^[_\-]+/.test(s) }
-    len(s) { return this.has(s) ? s.match(/^[_\-]+/)[0].length : 0; }
+    len(s) { return this.get(s).length; }
+    //len(s) { return this.has(s) ? this.get(s)[0].length : 0; }
+    trim(s) { return this.#splitPS(s)[1] }
+    split(s) { return this.#splitPS(s) }
     //get len(s) { const m=s.match(/^[_\-]+/); return 0===m.length ? 0 : m[0].length; }
     
-    get allNames() { return [...Object.keys(this._cases),'low','up'] }
+    //get allNames() { return [...Object.keys(this._cases),'low','up'] }
+    get allNames() { return [...Object.keys(this._cases)] }
     getNames(s) { return this.allNames.map(n=>[n,this[`is${n.capitalize()}`](s)]).filter(([n,r])=>r).map(([n,r])=>n) }
     getName(str) {
         const patterns = this.allNames.map(n=>[n,this[`is${n.capitalize()}`](str)]).filter(([n,r])=>r)
@@ -50,8 +55,8 @@ class _StringPrefixCase {
     // 他にも a.b.c, a/b/c, a,b,c,  a|b|c のようなケースもありうる。でもこれはケースではなく区切なので別件。
 
 //    isTitle(str) {return (str.includes(' ') && /^[A-Z]+$/g.test(str[0]))}
-    isLow(str){return /^[_\-]+/.test(str) && /[a-z]+/.test(str) && str===str.toLowerCase()}
-    isUp(str){return /^[_\-]+/.test(str) && /[A-Z]+/.test(str) && str===str.toUpperCase()}
+//    isLow(str){return /^[_\-]+/.test(str) && /[a-z]+/.test(str) && str===str.toLowerCase()}
+//    isUp(str){return /^[_\-]+/.test(str) && /[A-Z]+/.test(str) && str===str.toUpperCase()}
     getType(str) {
         if (this.isChain(str)) { return this._cases.chain }
         else if (this.isConstant(str)) { return this._cases.constant } // upper snake
@@ -112,9 +117,16 @@ class PrefixCase {
     get camel() {return SC.toCamel(this._s)}
     get pascal() {return SC.toPascal(this._s)}
     get constant() {return SC.toConstant(this._s)}
+    // prefix無しtrim
+    get chainT() {return SC.trim(SC.toChain(this._s))}
+    get snakeT() {return SC.trim(SC.toSnake(this._s))}
+    get camelT() {return SC.trim(SC.toCamel(this._s))}
+    get pascalT() {return SC.trim(SC.toPascal(this._s))}
+    get constantT() {return SC.trim(SC.toConstant(this._s))}
+
 //    get title() {return SC.toTitle(this._s)}
-    get low() {return SC.toLow(this._s)}
-    get up() {return SC.toUp(this._s)}
+//    get low() {return SC.toLow(this._s)}
+//    get up() {return SC.toUp(this._s)}
     get isSome() {return SC.isSomeCase(this._s)}
     get isChain() {return SC.isChain(this._s)}
     get isSnake() {return SC.isSnake(this._s)}
@@ -122,8 +134,8 @@ class PrefixCase {
     get isPascal() {return SC.isPascal(this._s)}
     get isConstant() {return SC.isConstant(this._s)}
 //    get isTitle() {return SC.isTitle(this._s)}
-    get isLow() {return SC.isLow(this._s)}
-    get isUp() {return SC.isUp(this._s)}
+//    get isLow() {return SC.isLow(this._s)}
+//    get isUp() {return SC.isUp(this._s)}
 }
 Object.defineProperty(String.prototype, 'pCase', {get(){
   if(!this._pCase){this._pCase=new PrefixCase(this)}
