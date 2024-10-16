@@ -14,9 +14,14 @@ window.addEventListener('DOMContentLoaded', (event) => {
     const bb = new BlackBox(a)
 
     // プロパティ存在確認
-    const el = document.createElement('p')
+    let el = document.createElement('p')
     'attr,data,cp,class,attrs,datas,cps,classs,styles,E,N,get,gets,set,del,getX,getXs,setX,delX'.split(',').map(k=>{console.log(k);return a.t(()=>!!el[k])})
     a.t(''===el.xpath)
+
+    // プロパティに代入しても無反応
+    //'attr,data,cp,class,attrs,datas,cps,classs,styles,E,N,get,gets,set,del,getX,getXs,setX,delX'.split(',').map(k=>a.t(()=>{el[k]=null;return null!==el[k]}))
+    'attr,data,cp,class,attrs,datas,cps,styles,E,N,get,gets,set,del,getX,getXs,setX,delX'.split(',').map(k=>a.t(()=>{el[k]=null;return null!==el[k]}))
+    a.e(TypeError, 'classsにセットする値は文字列かその配列であるべきです。', ()=>el.classs=null)
 
     // id:                標準API（グローバル・アトリビュート）  キー未存在時''
     // [gs]etAttribute(): 標準API                                キー未存在時null
@@ -47,18 +52,212 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
     // style.getPropertyValue: 標準API           キー未存在時''
     // cp                    : 今回実装した機能  キー未存在時''
-    console.log(getComputedStyle(el).getPropertyValue('--my-name'))
+    //console.log(getComputedStyle(el).getPropertyValue('--my-name'))
     console.log(el.style.getPropertyValue('--my-name'))
     console.log(el.cp.myName)
-    a.t(''===getComputedStyle(el).getPropertyValue('--my-name'))
+    //a.t(''===getComputedStyle(el).getPropertyValue('--my-name'))
     a.t(''===el.style.getPropertyValue('--my-name'))
     a.t(''===el.cp.myName)
     el.cp.myName = '鈴木'
     a.t('鈴木'===el.style.getPropertyValue('--my-name'))
     a.t('鈴木'===el.cp.myName)
-    console.log(getComputedStyle(el).getPropertyValue('--my-name')) // ''
+    //console.log(getComputedStyle(el).getPropertyValue('--my-name')) // ''
     console.log(el.style.getPropertyValue('--my-name'))             // 鈴木
     console.log(el.cp.myName)                                       // 鈴木
+    el.cp.myName = null
+    a.t(''===el.style.getPropertyValue('--my-name'))
+    a.t(''===el.cp.myName)
+    console.log(el.attr.style)
+    console.log(el)
+    el.attr.style = null
+    a.t(''===el.style.getPropertyValue('--my-name'))
+    a.t(''===el.cp.myName)
+
+    // getComputedStyle(el).getPropertyValue: 標準API           キー未存在時''
+    // CP                                   : 今回実装した機能  キー未存在時''
+    console.log(getComputedStyle(el).getPropertyValue('--my-name'))
+    a.t(''===getComputedStyle(el).getPropertyValue('--my-name'))
+    a.t(''===el.CP.myName)
+    a.e(TypeError, `getComputedStyle()にはセットできません。`, ()=>el.CP.myName = '鈴木')
+    // 値のセットはcpを使う。ただしdocumentにappendしないと取得できない
+    el.cp.myName = '田中'
+    a.t(''===getComputedStyle(el).getPropertyValue('--my-name'))
+    a.t(''===el.CP.myName)
+    document.body.append(el)
+    a.t('田中'===getComputedStyle(el).getPropertyValue('--my-name'))
+    a.t('田中'===el.CP.myName)
+    el.cp.myName = null
+    a.t(''===getComputedStyle(el).getPropertyValue('--my-name'))
+    a.t(''===el.CP.myName)
+
+    // class
+    a.t(!!el.class)
+    a.t(''===el.class.v)
+    a.t(Type.isIns(el.class.l, DOMTokenList))
+    a.e(TypeError, `class.vかclass.lのみ参照可能です。それぞれel.className, el.classListの略称です。`, ()=>el.class.x)
+    a.e(TypeError, `class.vかclass.lのみ参照可能です。それぞれel.className, el.classListの略称です。`, ()=>el.class.x=null)
+    el.class.v = 'a bc'
+    a.t('a bc'===el.class.v)
+    a.t(el.class.l.contains('a'))
+    a.t(el.class.l.contains('bc'))
+    a.f(el.class.l.contains('D'))
+    el.class.v = ['ef','ghi']
+    console.log(el.class.v)
+    a.t('ef ghi'===el.class.v)
+    a.t(el.class.l.contains('ef'))
+    a.t(el.class.l.contains('ghi'))
+    a.f(el.class.l.contains('J'))
+
+    // 複数形 attrs
+    console.log(el.attrs)
+    el.attrs = null
+    a.t(Type.isEmpO(el.attrs))
+    console.log(el.attrs)
+    console.log(Type.isEmpO(el.attrs))
+    el.attr.id = 'some-id'
+    el.data.someData = 'some-data'
+    el.style.color = 'black'
+    console.log(el.attrs)
+    a.t(el.attrs.hasOwnProperty('id'))
+    a.t(el.attrs.hasOwnProperty('dataSomeData'))
+    a.t(el.attrs.hasOwnProperty('style'))
+    a.t('some-id'===el.attrs.id)
+    a.t('some-data'===el.attrs.dataSomeData)
+    a.t('color: black;'===el.attrs.style)
+    el.attrs = null
+    el.attrs = {
+        id: 'some-id',
+        style: 'color: black;',
+        dataSomeData: 'some-data',
+    }
+    a.t(el.attrs.hasOwnProperty('id'))
+    a.t(el.attrs.hasOwnProperty('dataSomeData'))
+    a.t(el.attrs.hasOwnProperty('style'))
+    a.t('some-id'===el.attrs.id)
+    a.t('some-data'===el.attrs.dataSomeData)
+    a.t('color: black;'===el.attrs.style)
+
+    // 複数形 datas
+    el.datas = null
+    a.t(Type.isEmpO(el.datas))
+    el.datas = {
+        someData: 'some-data',
+        anyData: 'any-data',
+    }
+    console.log(el.datas)
+    a.t(el.datas.hasOwnProperty('someData'))
+    a.t(el.datas.hasOwnProperty('anyData'))
+    a.t('some-data'===el.datas.someData)
+    a.t('any-data'===el.datas.anyData)
+    el.datas = null
+
+    // 複数形 styles
+    el.styles = null
+    console.log(el.styles)
+    el.styles = {
+        color: 'black',
+        'background-color': 'green',
+        writingMode: 'vertical-rl',
+        _webkitColor: 'aaa',
+//        '-webkit-size': 'bbb',
+//        '-webkit-transition': 'all',
+        '-webkit-text-stroke-width': '3px',
+        _webkitTextStrokeColor: 'orange',
+        '--main-color': 'red',
+        __subColor: 'blue',
+    }
+    console.log(el.styles)
+    console.log(el.attr.style)
+    a.t(el.styles.hasOwnProperty('color'))
+    a.t(el.styles.hasOwnProperty('backgroundColor'))
+    a.t(el.styles.hasOwnProperty('writingMode'))
+    // 一括指定プロパティとして勝手に統合されてしまった！
+    a.t(el.styles.hasOwnProperty('_webkitTextStroke'))
+//    a.t(el.styles.hasOwnProperty('__webkitTextStrokeWidth'))
+//    a.t(el.styles.hasOwnProperty('__webkitTextStrokeColor'))
+//    a.t(el.styles.hasOwnProperty('__webkitColor'))
+//    a.t(el.styles.hasOwnProperty('__webkitSize'))
+    a.t(el.styles.hasOwnProperty('__mainColor'))
+    a.t(el.styles.hasOwnProperty('__subColor'))
+
+    a.t('black'===el.styles.color)
+    a.t('green'===el.styles.backgroundColor)
+    a.t('vertical-rl'===el.styles.writingMode)
+    a.t('red'===el.styles.__mainColor)
+    a.t('blue'===el.styles.__subColor)
+    // 一括指定プロパティとして勝手に統合されてしまった！
+    a.t('3px orange'===el.styles._webkitTextStroke)
+//    a.t('3px'===el.styles.__webkitTextStrokeWidth)
+//    a.t('orange'===el.styles.__webkitTextStrokeColor)
+
+    a.t('3px'===el.style['-webkit-text-stroke-width'])
+    a.t('orange'===el.style['-webkit-text-stroke-color'])
+    a.t('3px'===el.style.webkitTextStrokeWidth)
+    a.t('orange'===el.style.webkitTextStrokeColor)
+    a.t('3px'===el.style.getPropertyValue('-webkit-text-stroke-width'))
+    a.t('orange'===el.style.getPropertyValue('-webkit-text-stroke-color'))
+//    a.t('3px'===el.style.getPropertyValue('webkitTextStrokeWidth'))
+//    a.t('orange'===el.style.getPropertyValue('webkitTextStrokeColor'))
+
+
+
+    // 複数形 cps
+    el.cps = null
+    console.log(el.cps)
+    a.t(Type.isEmpO(el.cps))
+    el.cps = {
+        mainColor: 'black',
+        subColor: 'yellow',
+    }
+    console.log(el.cps)
+    a.t(el.cps.hasOwnProperty('mainColor'))
+    a.t(el.cps.hasOwnProperty('subColor'))
+    a.t('black'===el.cps.mainColor)
+    a.t('yellow'===el.cps.subColor)
+    a.t('black'===el.styles.__mainColor)
+    a.t('yellow'===el.styles.__subColor)
+    console.log(el.cps)
+    console.log(el.attr.style)
+    el.cps = null
+
+    // 複数形 CPS
+    console.log(el.CPS)
+    a.e(TypeError, `getComputedStyle()にはセットできません。`, ()=>el.CPS=null)
+    el.cp.mainColor='black'
+    a.t(()=>'black'===el.CPS.mainColor)
+    el.cp.mainColor=null
+    console.log(el.CPS)
+    a.f(()=>el.CPS.hasOwnProperty('mainColor'))
+
+    // 複数形 classs
+    a.t(!!el.classs)
+    console.log(el.classs)
+    console.log(Type.isItr(el.classs))
+    console.log(el.classs)
+    a.t(Type.isEmpty(el.classs))
+    a.t(Type.isEmpL(el.classs))
+//    a.t(Type.isIns(el.classs.l, DOMTokenList))
+    //a.e(TypeError, `class.vかclass.lのみ参照可能です。それぞれel.className, el.classListの略称です。`, ()=>el.class.x)
+    //a.e(TypeError, `class.vかclass.lのみ参照可能です。それぞれel.className, el.classListの略称です。`, ()=>el.class.x=null)
+    a.e(TypeError, `classsにセットする値は文字列かその配列であるべきです。`, ()=>el.classs=null)
+    el.classs='a bc'
+//    el.class.v = 'a bc'
+    a.t('a bc'===el.class.v)
+    a.t(el.class.l.contains('a'))
+    a.t(el.class.l.contains('bc'))
+    a.f(el.class.l.contains('D'))
+    a.t(el.classs.compare(['a', 'bc']))
+
+//    el.class.v = ['ef','ghi']
+    el.classs = ['ef','ghi']
+    console.log(el.class.v)
+    a.t('ef ghi'===el.class.v)
+    a.t(el.class.l.contains('ef'))
+    a.t(el.class.l.contains('ghi'))
+    a.f(el.class.l.contains('J'))
+    a.t(el.classs.compare(['ef', 'ghi']))
+
+
 
     a.fin()
 })

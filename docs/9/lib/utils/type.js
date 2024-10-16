@@ -45,12 +45,22 @@ class Type {
                 if (this.isNullOrUndefined(v)) { return false }
                 return 'function'===typeof v[Symbol.iterator]
             }]],
-            ['Empty', [['Blank'], (v, noErr)=>{
+//            ['Empty', [['Blank'], (v, noErr)=>{
+//                if (this.isItr(v)) {
+//                    if ('length,size'.split(',').some(n=>v[n]===0)) { return true }
+//                    return false
+//                } else { if(noErr) {return false} else { throw new TypeError(`Not iterator.`) } }
+//            }]],
+            ['Empty', [['Blank'], (v, noErr)=>this.isEmpO(v)||this.isEmpL(v)]],
+            ['EmptyList', [['EmpList','EmpL'], (v, noErr)=>{
+                console.log(v, this.isItr(v))
                 if (this.isItr(v)) {
                     if ('length,size'.split(',').some(n=>v[n]===0)) { return true }
                     return false
                 } else { if(noErr) {return false} else { throw new TypeError(`Not iterator.`) } }
             }]],
+            ['EmptyObject', [['EmpObj','EmpO'], (v)=>this.isObj(v) && 0===Object.keys(v).length]],
+
             ['NullOrUndefinedOrEmpty', [['NUE'], (v)=>this.isNU(v) || this.isEmpty(v, true)]],
             ['Array', [['Ary', 'A'], (v)=>Array.isArray(v)]],
             ['Map', [[], (v)=>v instanceof Map]],
@@ -82,7 +92,8 @@ class Type {
             if ('function'!==typeof fn) { throw new Error(`${fnName}が未定義です。`)}
             this.#defineMain(fnName, fn) // 正式
             for (let name of abbrs) { this.#defineAbbr(`is${name}`, fn) } // 略名
-            const fns = (args)=>Array.isArray(args) && args.every(x=>getter(x))
+            //const fns = (args)=>Array.isArray(args) && args.every(x=>getter(x))
+            const fns = (args)=>Array.isArray(args) && args.every(x=>fn(x))
             this.#defineMain(`${fnName}s`, fns) // 複数形
             for (let name of abbrs) { this.#defineAbbr(`is${name}s`, fns) } // 略名
         }

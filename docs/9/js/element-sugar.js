@@ -56,7 +56,9 @@ function matchKey(k, ...args) {
     else {args[args.length-1]()}
 }
 */
+
 Object.defineProperties(Element.prototype, {
+//Object.defineProperties(Element.prototype, Object.freeze({
     attr: { // HTML Element attribute
         get() { return new Proxy(this, {
 //            get(t,k){return t.getAttribute(key(k))}, 
@@ -87,6 +89,7 @@ Object.defineProperties(Element.prototype, {
         get() { return new Proxy(this, {
             get(t,k){return getComputedStyle(t).getPropertyValue(`--${k.case.chain}`)}, 
 //            set(t,k,v){Type.isNU(v) ? t.style.removeProperty(`--${k.case.chain}`) : t.style.setProperty(`--${k.case.chain}`,v)}
+            set(t,k,v){throw new TypeError(`getComputedStyle()にはセットできません。`)}
         }) },
     },
 
@@ -98,7 +101,13 @@ Object.defineProperties(Element.prototype, {
                 else {throw new TypeError(`class.vかclass.lのみ参照可能です。それぞれel.className, el.classListの略称です。`)}
             }, 
             set(t,k,v){
-                if ('v'===k) {t.className=v}
+                if ('v'===k || 'l'===k) {
+                    if (Type.isStr(v)) {t.className=v}
+                    else if(Type.isStrs(v)) {t.className=v.join(' ')}
+                }
+                else {throw new TypeError(`class.vかclass.lのみ参照可能です。それぞれel.className, el.classListの略称です。`)}
+//                if ('v'===k) {t.className=v}
+//                else if ('l'===k) {}
             },
         }) },
     },
@@ -108,7 +117,8 @@ Object.defineProperties(Element.prototype, {
     attrs: {
         //get() { return a2o([...Array(this.attributes.length)].map((_,i)=>{const a=this.attributes.item(i);return [a.name, a.value]})) },
         //get() { return ([...Array(this.attributes.length)].map((_,i)=>{const a=this.attributes.item(i);return [a.name, a.value]})).toObject() },
-        get() { return ([...Array(this.attributes.length)].map((_,i)=>{const a=this.attributes.item(i);return [a.name, a.value]}).filter(v=>v)).toObject() },
+        //get() { return ([...Array(this.attributes.length)].map((_,i)=>{const a=this.attributes.item(i);return [a.name, a.value]}).filter(v=>v)).toObject() },
+        get() { return ([...Array(this.attributes.length)].map((_,i)=>{const a=this.attributes.item(i);return [a.name.case.camel, a.value]}).filter(v=>v)).toObject() },
         set(v) {
             if (Type.isNU(v) || Type.isObj(v)) {
                 [...Object.keys(this.attrs)].map(k=>this.attr[k]=null) // 全削除
@@ -130,7 +140,8 @@ Object.defineProperties(Element.prototype, {
         //get() { return ([...this.computedStyleMap().entries()].filter(([k,v])=>k.startsWith('--')).map(kv=>[prop(kv[0].replace(/\-+/,'')), kv[1].toString()])).toObject() },
 //        get() { return ([...this.computedStyleMap().entries()].filter(([k,v])=>k.startsWith('--')).map(kv=>[kv[0].replace(/\-+/,'').case.camel, kv[1].toString()])).toObject() },
         //get() { return ([...this.computedStyleMap().entries()].filter(([k,v])=>k.pCase.isChain).map(kv=>[kv[0].pCase.camelT, kv[1].toString()])).toObject() },
-        get() { return ([...Array(this.attributes.length)].map((_,i)=>{const a=this.attributes.item(i);return [a.name, a.value]}).filter(([k,v])=>k.startsWith('--')).map(([k,v])=>[k.pCase.camelT, v.toString()])).toObject() },
+        //get() { console.log([...Array(this.attributes.length)].map((_,i)=>{const a=this.attributes.item(i);return [a.name, a.value]})); return ([...Array(this.attributes.length)].map((_,i)=>{const a=this.attributes.item(i);return [a.name, a.value]}).filter(([k,v])=>k.startsWith('--')).map(([k,v])=>[k.pCase.camelT, v.toString()])).toObject() },
+        get() { return [...Object.entries(this.styles)].filter(([k,v])=>k.startsWith('__')).map(([k,v])=>[k.pCase.main,v]).toObject() },
         set(o) {
             if (Type.isNU(o) || Type.isObj(o)) {
                 [...Object.keys(this.cps)].map(k=>this.cp[k]=null) // 全削除
@@ -142,14 +153,15 @@ Object.defineProperties(Element.prototype, {
         //get() { return ([...this.computedStyleMap().entries()].filter(([k,v])=>k.startsWith('--')).map(kv=>[prop(kv[0].replace(/\-+/,'')), kv[1].toString()])).toObject() },
 //        get() { return ([...this.computedStyleMap().entries()].filter(([k,v])=>k.startsWith('--')).map(kv=>[kv[0].replace(/\-+/,'').case.camel, kv[1].toString()])).toObject() },
         get() { return ([...this.computedStyleMap().entries()].filter(([k,v])=>k.pCase.isChain).map(kv=>[kv[0].pCase.camelT, kv[1].toString()])).toObject() },
+        set(v){throw new TypeError(`getComputedStyle()にはセットできません。`)}
     },
 
     classs: {
-        get() { return this.className.split(' ') },
+        get() { return this.className.split(' ').filter(v=>0<v.length) },
         set(v) {
             if (Type.isStr(v)) { this.className = v }
             else if(Type.isStrs(v)) { this.className = v.join(' ') }
-            else {throw new TypeError('classsは文字列かその配列であるべきです。')}
+            else {throw new TypeError('classsにセットする値は文字列かその配列であるべきです。')}
         }
     },
     // Style:  CSSStyleDeclaration
@@ -158,6 +170,7 @@ Object.defineProperties(Element.prototype, {
     // getComputedStyle: 外部CSS等の対象になるCSSプロパティを含める。値は現在値。（CSS操作）※再計算されてパフォーマンス低下する。
     styles: {
         get() {
+//            console.log(this.getAttribute('style'))
             const kvs = []
             for (let kv of (this.getAttribute('style') ?? '').split(';')) {
                 const k = kv.split(':')[0].trim()
@@ -175,7 +188,26 @@ Object.defineProperties(Element.prototype, {
             if (Type.isNU(v) || Type.isObj(v)) {
                 this.removeAttribute('style');
                 //if (Type.isObj(v)) { for (let [K,V] of Object.entries(v)) { this.style[K] = V } } // 各キーに代入
-                if (Type.isObj(v)) { for (let [K,V] of Object.entries(v)) { K.startsWith('__') ? this.style.setProperty(K.pCase.chain, V) : (this.style[K] = V); } } // 各キーに代入
+                //if (Type.isObj(v)) { for (let [K,V] of Object.entries(v)) { K.startsWith('__') ? this.style.setProperty(K.pCase.chain, V) : (this.style[K] = V); } } // 各キーに代入
+                if (Type.isObj(v)) {
+                    for (let [K,V] of Object.entries(v)) {
+                        //const key = (K.startsWith('--')) ? K.pCase.camel : K.case.camel;
+                        //const key = (K.startsWith('__')) ? K.pCase.chain : K.case.chain;
+                        //const key = K[(K.startsWith('__')) ? 'pCase' : 'case'].chain;
+                        const key = K[(K.pCase.hasP) ? 'pCase' : 'case'].chain;
+                        console.log(K,K.pCase.hasP,key)
+                        //console.log(K,key,key.pCase.hasP);
+                        //['__','--'].some(p=>K.startsWith(p)) ? this.style.setProperty(key, V) : this.style[key] = V;
+                        //['__','--'].some(p=>key.pCase.has) ? this.style.setProperty(key, V) : this.style[key] = V;
+                        //key.pCase.hasP ? this.style.setProperty(key, V) : this.style[key] = V;
+                        //this.style[key] = V;
+                        this.style.setProperty(key, V)
+
+                        //const key = K[K.startsWith('--') ? 'pCase': 'case'].camel
+                        //this.style.setProperty(key, V)
+//                        this.style.setProperty(K[K.startsWith('--') ? 'pCase': 'case'].camel, V)
+                    }
+                }
             }
         },
     },
@@ -222,8 +254,8 @@ Object.defineProperties(Element.prototype, {
         })},
     },
     */
-
 })
+//}))
 
 class Elm {
     constructor(el) { this._el = el } // window.Element
