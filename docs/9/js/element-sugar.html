@@ -257,6 +257,27 @@ window.addEventListener('DOMContentLoaded', (event) => {
     a.f(el.class.l.contains('J'))
     a.t(el.classs.compare(['ef', 'ghi']))
 
+    // xpath
+    console.log(el.xpath)
+    a.t('/html/body/p'===el.xpath)
+    el.remove()
+    console.log(el.xpath)
+    a.t(''===el.xpath)
+    el = document.createElement('p')
+    a.t(''===el.xpath)
+
+    console.log(el.E.name)
+
+    let span = document.createElement('span')
+    el.append(span)
+    a.t(null===el.get('span'))
+    document.body.append(el)   // append しないと取得できない！
+    a.t(span===el.get('span'))
+    el.append(document.createElement('span'))
+    console.log(el.gets('span'))
+    a.t(2===el.gets('span').length)
+    el.set(el.get('span'), document.createElement('i'))
+    a.t(1===el.gets('span').length && 1===el.gets('i').length)
 
 
     a.fin()
