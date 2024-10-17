@@ -224,28 +224,37 @@ Object.defineProperties(Element.prototype, {
             return this._node;
         },
     },
-    // XPath
-    xpath: {get(){return XPath.getPath(this)}},
+
+    // 短縮形
     get: {value(q,e){return document.querySelector(q, e ?? this)}},
     gets: {value(q,e){return document.querySelectorAll(q, e ?? this)}},
+    getP: {value(q){return this.closest(q)}}
 //    get: {value:(q,e)=>document.querySelector(q, e ?? this)},
 //    gets: {value:(q,e)=>document.querySelectorAll(q, e ?? this)},
 //    get: {value:(q,e)=>document.querySelector(q, e ?? document.querySelector(':root'))},
 //    gets: {value:(q,e)=>document.querySelectorAll(q, e ?? document.querySelector(':root'))},
     //set: {value:(...es)=>this.replaceWith(...es)},
 //    set: {value:(...es)=>{console.log(this, this.replaceWith);return this.replaceWith(...es)}},
-    set: {value(...es){console.log(this, this.replaceWith);return this.replaceWith(...es)}},
+    set: {value(...es){return this.replaceWith(...es)}},
     //del: {value:()=>this.remove()},
     del: {value(){this.remove()}},
-    getX: {value(p){return XPath.getEl(p)}},
-    getXs: {value(p){return XPath.getEls(p)}},
-    setX: {value(p, ...es){return XPath.replaceEls(p, ...es)}},
-    delX: {value(p){return XPath.delEls(p)}},
 //    getX: {value:(p)=>XPath.getEl(p)},
 //    getXs: {value:(p)=>XPath.getEls(p)},
 //    setX: {value:(p, ...es)=>XPath.replaceEls(p, ...es)},
 //    delX: {value:(p)=>XPath.delEls(p)},
 
+    // append,prepend,before,after,replaceWith,remove,insertAdjacent[Element|HTML|Text]
+    add: {value(...cs){return this.append(...cs)}},
+    pdd: {value(...cs){return this.prepend(...cs)}},
+    ins: {value(...cs){return this.after(...cs)}},
+    pns: {value(...cs){return this.before(...cs)}},
+
+    // XPath
+    xpath: {get(){return XPath.getPath(this)}},
+    getX: {value(p){return XPath.getEl(p)}},
+    getXs: {value(p){return XPath.getEls(p)}},
+    setX: {value(p, ...es){return XPath.replaceEls(p, ...es)}},
+    delX: {value(p){return XPath.delEls(p)}},
 
     /*
     cs: { // computedStyle() CSS再計算するためパフォーマンス低下する content-visibility:hidden で再計算を防ぐと吉
@@ -276,16 +285,26 @@ class Elm {
     get prev() { return this._el.previousElementSibling}
     get parent() { return this._el.parentElement }
     get children() { return this._el.children }
-    get first() { return this._el.parentElement ? this._el.parentElementhis._el.firstElementChild : null }
-    get last() { return this._el.parentElement ? this._el.parentElementhis._el.firstElementChild : null }
+    get first() { return this._el.parentElement ? this._el.parentElement.firstElementChild : null }
+    get last() { return this._el.parentElement ? this._el.parentElement.lastElementChild : null }
     get firstChild() { return this._el.firstElementChild }
     get lastChild() { return this._el.lastElementChild }
-    get descendants() { return null } // 未実装
-    get ancestors() { return null } // 未実装
     get isFirst() { return null===this._el.previousElementSibling }
     get isLast() { return null===this._el.nextElementSibling }
-    get hasParent() { return }
-    get hasChild() { return }
+//    get hasParent() { return }
+    get hasChild() { return 0<this._el.children.length }
+//    get descendants() { return null } // 未実装
+//    get ancestors() { return null } // 未実装  closest(q)
+    get ancestors() { return this.#getAncestors(this._el) }
+    #getAncestors(el,l) {
+        if (!l) {l=[]}
+        if (el) {
+            const p = el.parentElement
+            if (p) { l.push(p); this.#getAncestors(p, l) }
+            return l
+        }
+        else {return l}
+    }
 }
 class Node {
     //constructor(el) { this._el = el; this._types={ary:null, obj:null, map:null} } // window.Element
@@ -371,31 +390,34 @@ class XPath {
             }
             if(1 < s.length) {
                 for(var i=0; i<s.length; i++) {
-                    if(s[i] === el) {
-                    xpath += '[' + (i+1) + ']';
-                    break;
+                    if(s[i] === el) { xpath += '[' + (i+1) + ']'; break; }
                 }
             }
-        }
-        return xpath.toLowerCase();
+            return xpath.toLowerCase();
         } else {return ''}
     }
     static getEl(xpath){
-        const a = this.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+        //const a = this.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+        const a = this.#get(xpath)
         if (a.snapshotLength > 0) { return a.snapshotItem(0); }
     }
     static getEls(xpath){
-        const a = this.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+        //const a = this.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+        const a = this.#get(xpath)
         return [...Array(a.snapshotLength)].map((_,i)=>a.snapshotItem(i))
     }
     static delEls(xpath){
-        const a = this.evaluate(xpath, document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null)
+        //const a = this.evaluate(xpath, document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null)
+        const a = this.#get(xpath, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE)
         for (var i=0 ; i<a.snapshotLength; i++) {a.snapshotItem(i).parentNode.removeChild(a.snapshotItem(i))} 
     }
     static replaceEls(xpath, ...newEls){
-        const a = this.evaluate(xpath, document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null)
+        //const a = this.evaluate(xpath, document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null)
+        const a = this.#get(xpath, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE)
         for (var i=0 ; i<a.snapshotLength; i++) {a.snapshotItem(i).replaceWith(...newEls)}
     }
+    static #get(xpath, typ=XPathResult.ORDERED_NODE_SNAPSHOT_TYPE) {return document.evaluate(xpath, document, null, typ, null)}
+    //static #get(xpath, typ=XPathResult.ORDERED_NODE_SNAPSHOT_TYPE) {return this.evaluate(xpath, document, null, typ, null)}
 }
 
     // has系は Node.contain(node) でOK（子孫の中にnodeがあれば真を返す）

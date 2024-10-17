@@ -266,8 +266,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
     el = document.createElement('p')
     a.t(''===el.xpath)
 
-    console.log(el.E.name)
-
+    // set  replaceWith
     let span = document.createElement('span')
     el.append(span)
     a.t(null===el.get('span'))
@@ -276,9 +275,67 @@ window.addEventListener('DOMContentLoaded', (event) => {
     el.append(document.createElement('span'))
     console.log(el.gets('span'))
     a.t(2===el.gets('span').length)
-    el.set(el.get('span'), document.createElement('i'))
-    a.t(1===el.gets('span').length && 1===el.gets('i').length)
+    el.get('span').set(document.createElement('i'))
+    console.log(el)
+    a.t(2===el.children.length && 1===el.gets('span').length && 1===el.gets('i').length)
 
+    // del  remove
+    el.get('i').remove()
+    a.t(1===el.children.length && 1===el.gets('span').length)
+
+    // getX
+    console.log(span)
+    console.log(span.xpath)
+    console.log(el.get('span').xpath)
+    a.t(el.get('span')===el.getX(el.get('span').xpath))
+
+    // getXs
+    a.t([el.get('span')].compare(el.getXs(el.get('span').xpath)))
+
+    // setX
+    el.setX(el.get('span').xpath, document.createElement('i'))
+    a.t(el.get('i')===el.getX(el.get('i').xpath))
+
+    // delX
+    el.delX(el.get('i').xpath)
+    a.t(0===el.children.length)
+
+    // add,pdd,ins,pns
+    el.add(document.createElement('span'))
+    a.t(1===el.children.length && el.get('span')===el.children[0])
+    el.add(document.createElement('i'))
+    a.t(2===el.children.length && el.get('span')===el.children[0] && el.get('i')===el.children[1])
+
+    el.pdd(document.createElement('b'))
+    a.t(3===el.children.length && el.get('b')===el.children[0] && el.get('span')===el.children[1] && el.get('i')===el.children[2])
+
+    el.get('b').ins(document.createElement('q'))
+    a.t(4===el.children.length && el.get('b')===el.children[0] && el.get('q')===el.children[1] && el.get('span')===el.children[2] && el.get('i')===el.children[3])
+
+    el.get('b').pns(document.createElement('s'))
+    a.t(5===el.children.length && el.get('s')===el.children[0] && el.get('b')===el.children[1] && el.get('q')===el.children[2] && el.get('span')===el.children[3] && el.get('i')===el.children[4])
+
+    // E系 name,next/prev/,parent/children,first/last,
+    a.t('P'===el.E.name)
+    a.t(null===el.E.next) // elは最終要素である（次の要素がない）
+    console.log(el.E.next)
+    console.log(el.get('s'))
+    console.log(el.get('s').E.next)
+    console.log(el.get('s').E.prev)
+    console.log(el.get('s').E.parent)
+    a.t(el.get('b')===el.get('s').E.next)
+    a.t(null===el.get('s').E.prev)
+    a.t(el.get('i')===el.get('span').E.next)
+    a.t(null===el.get('i').E.next)
+    a.t(el.get('span')===el.get('i').E.prev)
+
+    a.t(el.get('s')===el.E.firstChild)
+    a.t(el.get('i')===el.E.lastChild)
+    a.t(el.get('s')===el.get('q').E.first)
+    a.t(el.get('i')===el.get('q').E.last)
+
+
+    // N系
 
     a.fin()
 })
