@@ -1,6 +1,7 @@
 ;(function(){
 // 依存ライブラリ Type(isObj,isFn,getSetter)
 class ML { // 要素を操作する（生成、追加、取得、置換、削除）。CSSセレクタ／XPath
+    // createElement[NS]
     get tags(){return new Proxy(ns=>new Proxy(this.#tag, this.#handler(ns)), this.#handler())}
     #handler(ns){return {get:(_,name)=>this.#tag.bind(this, ns, name)}}
     #tag(ns, name, ...args) {
@@ -15,6 +16,8 @@ class ML { // 要素を操作する（生成、追加、取得、置換、削除
         ? ()=>el.addEventListener(k.slice(2), v)
         : el.setAttribute.bind(el, k, v)
     }
+    // create[TextNode/Comment/DocumentFragment]
+
     get root() { return document.querySelector(':root') }
     add(el, ...children) {
         const frag = document.createDocumentFragment();

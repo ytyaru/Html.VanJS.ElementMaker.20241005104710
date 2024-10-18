@@ -228,7 +228,7 @@ Object.defineProperties(Element.prototype, {
     // 短縮形
     get: {value(q,e){return document.querySelector(q, e ?? this)}},
     gets: {value(q,e){return document.querySelectorAll(q, e ?? this)}},
-    getP: {value(q){return this.closest(q)}}
+    getP: {value(q){return this.closest(q)}},
 //    get: {value:(q,e)=>document.querySelector(q, e ?? this)},
 //    gets: {value:(q,e)=>document.querySelectorAll(q, e ?? this)},
 //    get: {value:(q,e)=>document.querySelector(q, e ?? document.querySelector(':root'))},
@@ -291,7 +291,7 @@ class Elm {
     get lastChild() { return this._el.lastElementChild }
     get isFirst() { return null===this._el.previousElementSibling }
     get isLast() { return null===this._el.nextElementSibling }
-//    get hasParent() { return }
+    get hasParent() { return null!==this._el.parentElement }
     get hasChild() { return 0<this._el.children.length }
 //    get descendants() { return null } // 未実装
 //    get ancestors() { return null } // 未実装  closest(q)
@@ -318,18 +318,30 @@ class Node {
     get last() { return this._el.parentNode ? this._el.parentNode.firstChild : null }
     get firstChild() { return this._el.firstChild }
     get lastChild() { return this._el.lastChild }
-    get descendants() { return } // 子孫
-    get ancestors() { return } // 先祖
     get isFirst() { return null===this._el.previousSibling }
     get isLast() { return null===this._el.nextSibling }
     get hasParent() { return null!==this._el.parentNode }
     get hasChild() { return 0<this._el.childNodes.length }
+    get ancestors() { return this.#getAncestors(this._el) }
+//    get descendants() { return } // 子孫
+//    get ancestors() { return } // 先祖
+    #getAncestors(el,l) {
+        if (!l) {l=[]}
+        if (el) {
+            const p = el.parentNode
+            if (p) { l.push(p); this.#getAncestors(p, l) }
+            return l
+        }
+        else {return l}
+    }
+
     // 自身
     get name() { return this._el.nodeName }
     get type() { return this._el.nodeType }
     get value() { return this._el.nodeValue}
-    get types() { return a2o(this._el.N.typePascalIds.map(k=>[pascal2Camel(k), this._el[`${k}_NODE`]])) }
-    get typeNames() { return this.N.#typePascalIds.map(v=>pascal2Camel(v)) }
+    get typeName() { return this.typeAry.filter(([k,v])=>v===this._el.nodeType)[0][0] }
+    get types() { return this.#typePascalIds.map(k=>[k.case.camel, this._el[`${k}_NODE`]]).toObject() }
+    get typeNames() { return this.#typePascalIds.map(v=>v.case.camel) }
     get #typePascalIds() { return 'ELEMENT,ATTRIBUTE,TEXT,CDATA_SECTION,PROCESSING_INSTRUCTION,COMMENT,DOCUMENT,DOCUMENT_TYPE,DOCUMENT_FRAGMENT'.split(',') }
     get typeObj() { return ({
         element: Node.ELEMENT_NODE, // 1 <p>
@@ -346,14 +358,14 @@ class Node {
         ['element', this._el.ELEMENT_NODE],
         ['attribute', this._el.ATTRIBUTE_NODE],
         ['text', this._el.TEXT_NODE],
-        ['cdata', this._el.CDATA_SECTION_NODE], // <!CDATA[[ … ]]>
+        ['cdataSection', this._el.CDATA_SECTION_NODE], // <!CDATA[[ … ]]>
         ['processingInstruction', this._el.PROCESSING_INSTRUCTION_NODE], // <?xml-stylesheet … ?>
         ['comment', this._el.COMMENT_NODE], // <!-- … -->
         ['document', this._el.DOCUMENT_NODE],
         ['documentType', this._el.DOCUMENT_TYPE_NODE], // <!DOCTYPE html>
         ['documentFragment', this._el.DOCUMENT_FRAGMENT_NODE],
     ] }
-    get typeObj() { return a2o(this.typeAry) }
+    get typeObj() { return this.typeAry.toObject() }
     get typeMap() { return new Map(this.typeAry) }
     getTypeName(i) {
         const ts = this.typeAry.filter(([k,v])=>v===i)
@@ -362,6 +374,7 @@ class Node {
 //        const ts = Object.entries(this.typeObj).filter(([k,v])=>v===i)
 //        return 0===ts.length ? null : ts[0][0]
     }
+    /*
     processChildrenByType(o){ // 子ノードのタイプに応じて一括処理する o:{typeName: ()=>{処理}, ...}
         console.log(this, this._el.childNodes)
         const rets = []
@@ -377,6 +390,34 @@ class Node {
         }
         console.log(rets)
         return rets
+    }
+    */
+    mapChildrenByType(o) { // o:{text:(el,i,gi)=>...,comment:(el,i,gi)=>...,element:(el,i,gi)=>...}
+        console.log(this, this._el.childNodes)
+        const rets = []
+        let [i,gi] = [0,0]
+        for (let child of this._el.childNodes) {
+            const n = this.getTypeName(child.nodeType)
+            console.log(n, child.nodeType)
+            if (o.hasOwnProperty(n)) {
+                rets.push(o[n](child, i, gi))
+                gi++;
+            }
+            i++;
+        }
+        console.log(rets)
+        return rets
+    }
+    setChildrenByType(o) {
+        console.log(this, this._el.childNodes)
+        const newChildren = this.mapChildrenByType(o)
+        if (newChildren.length!==this._el.childNodes.length){throw new TypeError(`現在の子ノードと新しいノードの数が違います。一致させてください。document.createDocumentFragment()等を使えば一致させられます。`)}
+        console.log(newChildren, this._el.childNodes)
+        //for (let i=0; i<this._el.childNodes; i++) {this._el.replaceChild(newChildren[i], this._el.childNodes[i])}
+        for (let i=0; i<this._el.childNodes.length; i++) {
+            console.log(i, newChildren[i], this._el.childNodes[i])
+            this._el.replaceChild(newChildren[i], this._el.childNodes[i])
+        }
     }
 }
 class XPath {

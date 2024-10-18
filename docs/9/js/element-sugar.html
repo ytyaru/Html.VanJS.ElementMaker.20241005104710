@@ -315,6 +315,17 @@ window.addEventListener('DOMContentLoaded', (event) => {
     el.get('b').pns(document.createElement('s'))
     a.t(5===el.children.length && el.get('s')===el.children[0] && el.get('b')===el.children[1] && el.get('q')===el.children[2] && el.get('span')===el.children[3] && el.get('i')===el.children[4])
 
+    // getP  closest(q)
+    a.t(el===el.get('b').getP('p'))
+
+    // E系ではtextNodeやcomment等element以外の要素は取得できない
+    const textNode = document.createTextNode('text-node')
+    el.get('s').pns(textNode)
+    a.t(5===el.children.length && el.get('s')===el.children[0] && el.get('b')===el.children[1] && el.get('q')===el.children[2] && el.get('span')===el.children[3] && el.get('i')===el.children[4])
+    const commentNode = document.createComment('comment-node')
+    el.get('s').pns(commentNode)
+    a.t(5===el.children.length && el.get('s')===el.children[0] && el.get('b')===el.children[1] && el.get('q')===el.children[2] && el.get('span')===el.children[3] && el.get('i')===el.children[4])
+
     // E系 name,next/prev/,parent/children,first/last,
     a.t('P'===el.E.name)
     a.t(null===el.E.next) // elは最終要素である（次の要素がない）
@@ -323,20 +334,170 @@ window.addEventListener('DOMContentLoaded', (event) => {
     console.log(el.get('s').E.next)
     console.log(el.get('s').E.prev)
     console.log(el.get('s').E.parent)
+    console.log(el.E.children)
     a.t(el.get('b')===el.get('s').E.next)
     a.t(null===el.get('s').E.prev)
     a.t(el.get('i')===el.get('span').E.next)
     a.t(null===el.get('i').E.next)
     a.t(el.get('span')===el.get('i').E.prev)
 
+    a.t(el===el.get('span').E.parent)
+    a.t(5===el.E.children.length && el.get('s')===el.E.children[0] && el.get('b')===el.E.children[1] && el.get('q')===el.E.children[2] && el.get('span')===el.E.children[3] && el.get('i')===el.E.children[4])
+
     a.t(el.get('s')===el.E.firstChild)
     a.t(el.get('i')===el.E.lastChild)
     a.t(el.get('s')===el.get('q').E.first)
     a.t(el.get('i')===el.get('q').E.last)
 
+    a.t(el.get('s').E.isFirst)
+    a.f(el.get('s').E.isLast)
+    a.f(el.get('i').E.isFirst)
+    a.t(el.get('i').E.isLast)
+
+    a.t(el.E.hasChild)
+    a.t(el.E.hasParent)
+    a.f(el.get('s').E.hasChild)
+    a.t(el.get('s').E.hasParent)
+    a.f(document.querySelector(':root').E.hasParent)
+
+    a.t(0===document.querySelector(':root').E.ancestors.length)
+    a.t(3===el.get('s').E.ancestors.length 
+        && el===el.get('s').E.ancestors[0] 
+        && document.querySelector('body')===el.get('s').E.ancestors[1] 
+        && document.querySelector(':root')===el.get('s').E.ancestors[2])
 
     // N系
 
+    // N系ではtextNodeやcomment等element以外の要素も取得できる
+    console.log(el.childNodes.length, el.childNodes, el.TEXT_NODE, el.childNodes[0].nodeType, el.COMMENT_NODE, el.childNodes[1].nodeType, el.ELEMENT_NODE, el.childNodes[2].nodeType, el.childNodes[3].nodeType, el.childNodes[4].nodeType, el.childNodes[5].nodeType, el.childNodes[6].nodeType)
+    a.t(7===el.childNodes.length)
+    console.log()
+    a.t(el.TEXT_NODE===el.childNodes[0].nodeType && 'text-node'===el.childNodes[0].nodeValue)
+    a.t(el.COMMENT_NODE===el.childNodes[1].nodeType && 'comment-node'===el.childNodes[1].nodeValue)
+    a.t(el.ELEMENT_NODE===el.childNodes[2].nodeType && 'S'===el.childNodes[2].tagName)
+    a.t(el.ELEMENT_NODE===el.childNodes[3].nodeType && 'B'===el.childNodes[3].tagName)
+    a.t(el.ELEMENT_NODE===el.childNodes[4].nodeType && 'Q'===el.childNodes[4].tagName)
+    a.t(el.ELEMENT_NODE===el.childNodes[5].nodeType && 'SPAN'===el.childNodes[5].tagName)
+    a.t(el.ELEMENT_NODE===el.childNodes[6].nodeType && 'I'===el.childNodes[6].tagName)
+
+    // N系 name,next/prev/,parent/children,first/last,
+    a.t('P'===el.N.name)
+    a.t(null===el.N.next) // elは最終要素である（次の要素がない）
+    console.log(el.N.next)
+    console.log(el.get('s'))
+    console.log(el.get('s').E.next)
+    console.log(el.get('s').E.prev)
+    console.log(el.get('s').E.parent)
+    console.log(el.N.children)
+    a.t(el.get('b')===el.get('s').E.next)
+    a.t(null===el.get('s').E.prev)
+    a.t(el.get('i')===el.get('span').E.next)
+    a.t(null===el.get('i').E.next)
+    a.t(el.get('span')===el.get('i').E.prev)
+
+    a.t(el===el.get('span').E.parent)
+//    a.t(5===el.N.children.length && el.get('s')===el.N.children[0] && el.get('b')===el.N.children[1] && el.get('q')===el.N.children[2] && el.get('span')===el.N.children[3] && el.get('i')===el.N.children[4])
+    a.t(el.TEXT_NODE===el.N.children[0].nodeType && 'text-node'===el.N.children[0].nodeValue)
+    a.t(el.COMMENT_NODE===el.N.children[1].nodeType && 'comment-node'===el.childNodes[1].nodeValue)
+    a.t(el.ELEMENT_NODE===el.N.children[2].nodeType && 'S'===el.childNodes[2].tagName)
+    a.t(el.ELEMENT_NODE===el.N.children[3].nodeType && 'B'===el.childNodes[3].tagName)
+    a.t(el.ELEMENT_NODE===el.N.children[4].nodeType && 'Q'===el.childNodes[4].tagName)
+    a.t(el.ELEMENT_NODE===el.N.children[5].nodeType && 'SPAN'===el.childNodes[5].tagName)
+    a.t(el.ELEMENT_NODE===el.N.children[6].nodeType && 'I'===el.childNodes[6].tagName)
+
+    // テキストノードやコメントノードはNodeであってElementではないため、Element.prototypeに実装したメソッドは継承されない！
+    // しかも実際はNodeオブジェクトは存在しないため実装不可能……よって el.N.firstChild.N.type のようなコードでテキストノードの場合はundefinedになり取得できない
+    console.log(el.N.firstChild.N)
+    console.log(el.N.firstChild)
+    console.log(el.N.lastChild)
+    console.log(el.N.lastChild.N)
+
+    a.t(el.TEXT_NODE===el.N.firstChild.nodeType)
+    a.t(el.get('i')===el.N.lastChild)
+    a.t(el.get('s')===el.get('q').E.first)
+    a.t(el.get('i')===el.get('q').E.last)
+
+    a.t(el.get('s').E.isFirst)
+    a.f(el.get('s').E.isLast)
+    a.f(el.get('i').E.isFirst)
+    a.t(el.get('i').E.isLast)
+
+    a.t(el.N.hasChild)
+    a.t(el.N.hasParent)
+    a.f(el.get('s').E.hasChild)
+    a.t(el.get('s').E.hasParent)
+    a.f(document.querySelector(':root').E.hasParent)
+
+    a.t(0===document.querySelector(':root').E.ancestors.length)
+    a.t(3===el.get('s').E.ancestors.length 
+        && el===el.get('s').E.ancestors[0] 
+        && document.querySelector('body')===el.get('s').E.ancestors[1] 
+        && document.querySelector(':root')===el.get('s').E.ancestors[2])
+
+    console.log(el.N.children)
+    console.log(el.N.children[0].constructor)
+    console.log(el.N.children[0].prototype)
+    console.log(el.N.children[0].type)
+//    a.t(el.TEXT_NODE===el.N.children[0].type)
+    console.log(el.N.children[0].N) // N.childrenを経由したらNが消える…（独自実装はすべて消える…）
+//    a.t(el.TEXT_NODE===el.N.children[0].N.type) // N.childrenを経由したらNが消える
+    a.t(el.TEXT_NODE===el.N.children[0].nodeType)
+//    a.t('text'===el.N.children[0].typeName)
+
+    // 取得された要素から独自実装が消えている…
+    console.log(el.children, el.childNodes) 
+
+    // ノード系には独自実装が継承されていない…
+    console.log(textNode)
+    console.log(commentNode)
+    console.log(commentNode.xpath)
+    // children/childNodesを経由せねば独自実装を取得できる
+    a.t(el.ELEMENT_NODE===el.N.type)
+    a.t('element'===el.N.typeName)
+    a.t('P'===el.N.name)
+    console.log(el.N.types)
+    console.log(el.N.typeNames)
+    a.t(["element", "attribute", "text", "cdataSection", "processingInstruction", "comment", "document", "documentType", "documentFragment"].compare(el.N.typeNames))
+    a.t(el.ELEMENT_NODE===el.N.types.element)
+    a.t(el.ATTRIBUTE_NODE===el.N.types.attribute)
+    a.t(el.TEXT_NODE===el.N.types.text)
+    a.t(el.CDATA_SECTION_NODE===el.N.types.cdataSection)
+    a.t(el.PROCESSING_INSTRUCTION_NODE===el.N.types.processingInstruction)
+    a.t(el.COMMENT_NODE===el.N.types.comment)
+    a.t(el.DOCUMENT_NODE===el.N.types.document)
+    a.t(el.DOCUMENT_TYPE_NODE===el.N.types.documentType)
+    a.t(el.DOCUMENT_FRAGMENT_NODE===el.N.types.documentFragment)
+    console.log(el.N.typeObj)
+    console.log(el.N.typeAry)
+    console.log(el.N.typeMap)
+    a.t('element'===el.N.getTypeName(el.ELEMENT_NODE))
+    a.t('attribute'===el.N.getTypeName(el.ATTRIBUTE_NODE))
+    a.t('text'===el.N.getTypeName(el.TEXT_NODE))
+        console.log(el.N.getTypeName(el.CDATA_SECTION_NODE))
+    a.t('cdataSection'===el.N.getTypeName(el.CDATA_SECTION_NODE))
+    a.t('processingInstruction'===el.N.getTypeName(el.PROCESSING_INSTRUCTION_NODE))
+    a.t('comment'===el.N.getTypeName(el.COMMENT_NODE))
+    a.t('document'===el.N.getTypeName(el.DOCUMENT_NODE))
+    a.t('documentType'===el.N.getTypeName(el.DOCUMENT_TYPE_NODE))
+    a.t('documentFragment'===el.N.getTypeName(el.DOCUMENT_FRAGMENT_NODE))
+
+    // ノードと要素が混在したchildrenに何らかの処理を行いたい場合
+    // nodeTypeで場合分けすることになる
+    // これが面倒なので糖衣構文を用意したい。
+    console.log(el.N.mapChildrenByType({
+        text: (n,i,gi)=>`#text:[${i}][${gi}]${n.nodeValue}`,
+        comment: (n,i,gi)=>`#comment:[${i}][${gi}]${n.nodeValue}`,
+        element: (n,i,gi)=>`#element:[${i}][${gi}][${n.nodeName}]${n.nodeValue}`,
+    }))
+    console.log(el)
+    el.N.setChildrenByType({
+        text: (n,i,gi)=>document.createTextNode(`#text:[${i}][${gi}]${n.nodeValue}`),
+        comment: (n,i,gi)=>document.createComment(`#comment:[${i}][${gi}]${n.nodeValue}`),
+        element: (n,i,gi)=>{n.textContent=`#element:[${i}][${gi}][${n.nodeName}]${n.nodeValue}`;return n;},
+    })
+    console.log(el)
+
+//    el.replaceChild(document.createTextNode('XXXXXXXX'), el.N.children[0])
     a.fin()
 })
 </script>
