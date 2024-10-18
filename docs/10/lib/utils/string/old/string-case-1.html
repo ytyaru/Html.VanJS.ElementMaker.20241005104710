@@ -1,0 +1,99 @@
+<meta charset="utf-8">
+<script src="../js/util/tester.js"></script>
+<script src="../lib/underscore/1.13.6/min.js"></script>
+<script src="../js/util/type.js"></script>
+<script src="../js/util/string/case.js"></script>
+<script>
+class TestStringCase extends Tester {
+    assertError(method, obj, args, e, msg) {
+        try { method.call(obj, ...args) }
+        catch(err) {
+            console.assert(err instanceof e)
+            //console.debug(err.message, msg)
+            console.assert(err.message===msg)
+        }
+    }
+    testAnother1() { // 略語の連続した大文字も単語区切りとして分割されてしまうので注意
+        let actual = 'toHTML'
+        let expected = 'to_h_t_m_l'
+        this.assertError(actual.toSnake, actual, [], Error, '入力strは次のいずれかのケースであるべきです。chain,snake,camel,pascal,constant,title')
+        //console.assert(Camel.toSnake(actual)===expected)
+        console.assert(actual.toSnake()===expected)
+        actual = 'toHtml' // キャメルケースにするなら略語としての大文字でなく単語の区切りとして大文字を使うこと
+        expected = 'to_html'
+        //console.assert(Camel.toSnake(actual)===expected)
+        console.assert(actual.toSnake()===expected)
+    }
+    testAnother2() { // 先頭に区切り文字がある場合、先頭が大文字になってしまう（pythonはprivateを意味するため__をプレフィクスにする。その場合キャメルにすると先頭が大文字になってしまう。大文字小文字は第二引数でのみ決定すべきでは？　また、先頭と末尾についた区切り文字は消去すべきかそのまま付与すべきか？キャメルとしては消去が正しいはず。pythonの__は特殊ケースとして考えないことにする。あくまで単語の区切りとして解釈する）
+        let actual = '_to_html'
+        let expected = 'ToHtml'
+        this.assertError(actual.toSnake, actual, [], Error, '入力strは次のいずれかのケースであるべきです。chain,snake,camel,pascal,constant,title')
+//        console.assert(actual.toCamel()===expected)
+//        console.assert('___to_html'.toCamel()===expected)
+//        console.assert('___to___html'.toCamel()===expected)
+//        console.assert('___to___html___'.toCamel()===expected)
+        actual = '-to-html'
+        expected = 'ToHtml'
+        this.assertError(actual.toCamel, actual, [], Error, '入力strは次のいずれかのケースであるべきです。chain,snake,camel,pascal,constant,title')
+//        console.assert(actual.toCamel()===expected)
+//        console.assert('---to-html'.toCamel()===expected)
+//        console.assert('---to---html'.toCamel()===expected)
+//        console.assert('---to---html---'.toCamel()===expected)
+    }
+    // そもそも単語の区切りが曖昧。
+    // username, user-name
+    // password, pass-word
+    // txid, tx-id
+    // キャメルケースのとき略語を大文字にすると単語の境界がわからなくなる。略語は一単語とし先頭大文字でほかは小文字にすること。
+    // html, HTML, Html
+    // HTMLReader, HtmlReader, html-reader
+
+
+    testStringCaseNames() {
+        const expecteds = ['chain', 'constant', 'pascal', 'snake', 'camel', 'title'].sort()
+        const actuals = ''.caseNames().sort()
+        for (let i=0; i<expecteds.length; i++) { console.assert(expecteds[i]===actuals[i]) }
+    }
+    testStringCaseName() {
+        const actuals = ['java-script', 'JAVA_SCRIPT', 'JavaScript', 'java_script', 'javaScript', 'Java script']
+        //const expecteds = ['Chain', 'Constant', 'Pascal', 'Snake', 'Camel', 'Title']
+        const expecteds = ['chain', 'constant', 'pascal', 'snake', 'camel', 'title']
+        for (let i=0; i<actuals.length; i++) {
+            //console.debug(actuals[i], expecteds[i], actuals[i].caseName())
+            console.assert(expecteds[i]===actuals[i].caseName())
+        }
+    }
+    testStringIs() {
+        const actuals = ['java-script', 'JAVA_SCRIPT', 'JavaScript', 'java_script', 'javaScript', 'Java script']
+        const ids = ['Chain', 'Constant', 'Pascal', 'Snake', 'Camel', 'Title']
+        for (let i=0; i<ids.length; i++) {
+            for (let a=0; a<actuals.length; a++) {
+                const expected = (i===a) ? actuals[a][`is${ids[i]}`]() : !actuals[a][`is${ids[i]}`]()
+                //console.debug(i, a, actuals[a], `is${ids[i]}`, actuals[a][`is${ids[i]}`], expected)
+                console.assert(expected)
+            }
+        }
+    }
+    testStringTo() {
+        const ids = ['Chain', 'Constant', 'Pascal', 'Snake', 'Camel', 'Title']
+        const actuals = ['java-script', 'JAVA_SCRIPT', 'JavaScript', 'java_script', 'javaScript', 'Java script']
+        const expecteds = ['java-script', 'JAVA_SCRIPT', 'JavaScript', 'java_script', 'javaScript', 'Java script']
+        for (let i=0; i<ids.length; i++) {
+            for (let a=0; a<actuals.length; a++) {
+                if (i===a) {continue}
+                console.debug(i, a, `expected:${expecteds[i]}`, 'actual:'+actuals[a][`to${ids[i]}`](), `${actuals[a].caseName()}.to${ids[i]}('${actuals[a]}')`)
+                console.assert(expecteds[i]===actuals[a][`to${ids[i]}`]())
+            }
+        }
+    }
+}
+new TestStringCase().run()
+</script>
+
+<body>
+<h1></h1>
+<header></header>
+<main></main>
+<footer></footer>
+</body>
+

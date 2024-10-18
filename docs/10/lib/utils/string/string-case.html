@@ -1,0 +1,149 @@
+<meta charset="utf-8">
+<script src="../type.js"></script>
+<script src="../string/case.js"></script>
+<script src="../array/compare.js"></script>
+<script src="../test/assertion.js"></script>
+<script src="../test/black-box.js"></script>
+<!--
+<script src="../js/util/test.js"></script>
+<script src="../lib/underscore/1.13.6/min.js"></script>
+<script src="../js/util/type.js"></script>
+<script src="../js/util/string/case.js"></script>
+-->
+<script>
+window.addEventListener('DOMContentLoaded', (event) => {
+    const a = new Assertion()
+    const bb = new BlackBox(a)
+//    console.log(''.case.allNames)
+    a.t(()=>Type.isIns(''.case))
+    a.t(()=>{
+        const names = 'chain,snake,camel,pascal,constant,title,low,up'.split(',')
+        return names.every(n=>''.case.allNames.includes(n))
+    })
+//    console.log('my-name'.case.name)
+    a.t(()=>'my-name-is'.case.name==='chain')
+    a.t(()=>'my_name_is'.case.name==='snake')
+    a.t(()=>'myNameIs'.case.name==='camel')
+    a.t(()=>'MyNameIs'.case.name==='pascal')
+    a.t(()=>'MY_NAME_IS'.case.name==='constant')
+    a.t(()=>'My name is'.case.name==='title')
+
+    a.t(()=>'my-name-is'.case.chain==='my-name-is')
+    a.t(()=>'my-name-is'.case.snake==='my_name_is')
+    a.t(()=>'my-name-is'.case.camel==='myNameIs')
+    a.t(()=>'my-name-is'.case.pascal==='MyNameIs')
+    a.t(()=>'my-name-is'.case.constant==='MY_NAME_IS')
+    a.t(()=>'my-name-is'.case.title==='My name is')
+    a.t(()=>'my-name-is'.case.low==='my-name-is')
+    a.t(()=>'my-name-is'.case.up==='MY-NAME-IS')
+
+    a.t(()=>'my_name_is'.case.chain==='my-name-is')
+    a.t(()=>'my_name_is'.case.snake==='my_name_is')
+    a.t(()=>'my_name_is'.case.camel==='myNameIs')
+    a.t(()=>'my_name_is'.case.pascal==='MyNameIs')
+    a.t(()=>'my_name_is'.case.constant==='MY_NAME_IS')
+    a.t(()=>'my_name_is'.case.title==='My name is')
+    a.t(()=>'my_name_is'.case.low==='my_name_is')
+    a.t(()=>'my_name_is'.case.up==='MY_NAME_IS')
+
+    a.t(()=>'myNameIs'.case.chain==='my-name-is')
+    a.t(()=>'myNameIs'.case.snake==='my_name_is')
+    a.t(()=>'myNameIs'.case.camel==='myNameIs')
+    a.t(()=>'myNameIs'.case.pascal==='MyNameIs')
+    a.t(()=>'myNameIs'.case.constant==='MY_NAME_IS')
+    a.t(()=>'myNameIs'.case.title==='My name is')
+    a.t(()=>'myNameIs'.case.low==='mynameis')
+    a.t(()=>'myNameIs'.case.up==='MYNAMEIS')
+
+    a.t(()=>'MyNameIs'.case.chain==='my-name-is')
+    a.t(()=>'MyNameIs'.case.snake==='my_name_is')
+    a.t(()=>'MyNameIs'.case.camel==='myNameIs')
+    a.t(()=>'MyNameIs'.case.pascal==='MyNameIs')
+    a.t(()=>'MyNameIs'.case.constant==='MY_NAME_IS')
+    a.t(()=>'MyNameIs'.case.title==='My name is')
+    a.t(()=>'MyNameIs'.case.low==='mynameis')
+    a.t(()=>'MyNameIs'.case.up==='MYNAMEIS')
+
+    a.t(()=>'MY_NAME_IS'.case.chain==='my-name-is')
+    a.t(()=>'MY_NAME_IS'.case.snake==='my_name_is')
+    a.t(()=>'MY_NAME_IS'.case.camel==='myNameIs')
+    a.t(()=>'MY_NAME_IS'.case.pascal==='MyNameIs')
+    a.t(()=>'MY_NAME_IS'.case.constant==='MY_NAME_IS')
+    a.t(()=>'MY_NAME_IS'.case.title==='My name is')
+    a.t(()=>'MY_NAME_IS'.case.low==='my_name_is')
+    a.t(()=>'MY_NAME_IS'.case.up==='MY_NAME_IS')
+
+    a.t(()=>'My name is'.case.chain==='my-name-is')
+    a.t(()=>'My name is'.case.snake==='my_name_is')
+    a.t(()=>'My name is'.case.camel==='myNameIs')
+    a.t(()=>'My name is'.case.pascal==='MyNameIs')
+    a.t(()=>'My name is'.case.constant==='MY_NAME_IS')
+    a.t(()=>'My name is'.case.title==='My name is')
+    a.t(()=>'My name is'.case.low==='my name is')
+    a.t(()=>'My name is'.case.up==='MY NAME IS')
+
+//    console.log('my-name-is'.case.names)
+    a.t(()=>'my-name-is'.case.names.compare(['chain','low']))
+    a.t(()=>'my_name_is'.case.names.compare(['snake','low']))
+    a.t(()=>'myNameIs'.case.names.compare(['camel']))
+    a.t(()=>'MyNameIs'.case.names.compare(['pascal']))
+    a.t(()=>'MY_NAME_IS'.case.names.compare(['constant','up']))
+    a.t(()=>'My name is'.case.names.compare(['title']))
+//    console.log('html'.case.names)
+//    console.log('HTML'.case.names)
+//    console.log('html'==='html'.toLowerCase())
+    a.t(()=>'html'.case.names.compare(['chain','snake','camel','low']))
+    a.t(()=>'HTML'.case.names.compare(['constant','up']))
+
+
+
+    // 不正値系
+    a.t(()=>''.case.name==='')
+    a.t(()=>'-_'.case.name==='')
+    a.t(()=>'html'.case.name==='chain')    // chain,snake,camelでありうるが先出のchainである。正確にはlower。
+    a.t(()=>'HTML'.case.name==='constant') // 大文字が連続した場合は他の型に変換できないため不正値として扱うべきでは？
+    a.t(()=>'HTMLs'.case.name==='')  
+    a.t(()=>'aHTML'.case.name==='')
+
+    console.log('_HTML'.case.name)
+    console.log('-HTML'.case.name)
+    console.log('-html'.case.name)
+    console.log('HTMLs'.case.chain)       // 大文字が連続しつつ小文字も含まれると狂ってしまう！
+    console.log('HTMLs'.case.snake)
+    console.log('HTMLs'.case.camel)
+    console.log('HTMLs'.case.pascal)
+    console.log('HTMLs'.case.constant)
+    console.log('HTMLs'.case.title)
+    console.log('HTMLs'.case.low)
+    console.log('HTMLs'.case.up)
+    console.log('writing-mode'.case.name)
+    console.log('-webkit-color'.case.name)
+    console.log('--main-color'.case.name)
+
+    
+
+    console.log('color'.case.camel)
+    console.log('background-color'.case.camel)
+    console.log('-webkit-transition'.case.camel)
+    console.log('--main-color'.case.camel)
+
+    console.log('color'.case.isChain)
+    console.log('background-color'.case.isChain)
+    console.log('-webkit-transition'.case.isChain)
+    console.log('--main-color'.case.isChain)
+
+//    console.log('-webkit-transition'.cssCase.pj)
+//    console.log('--main-color'.cssCase.vj)
+
+
+
+
+    a.fin()
+})
+</script>
+
+<h1></h1>
+<header></header>
+<main></main>
+<footer></footer>
+

@@ -1,0 +1,545 @@
+<meta charset="utf-8">
+<script src="../lib/utils/type.js"></script>
+<script src="../lib/utils/syntax-sugar/ifel.js"></script>
+<script src="../lib/utils/string/case.js"></script>
+<script src="../lib/utils/string/p-case.js"></script>
+<script src="../lib/utils/array/to-object.js"></script>
+<script src="../lib/utils/array/compare.js"></script>
+<script src="../lib/utils/test/assertion.js"></script>
+<script src="../lib/utils/test/black-box.js"></script>
+<script src="element-sugar.js"></script>
+<script src="ml.js"></script>
+<script>
+window.addEventListener('DOMContentLoaded', (event) => {
+    const a = new Assertion()
+    const bb = new BlackBox(a)
+    // プロパティ存在確認
+    'tags,mkFrg,mkTxt,mkCmt,mkCdt,mkProcInst,mkAttr,root,add,addRoot,get,gets,set,del,getPath,getX,getXs,setX,delX,on,off'.split(',').map(k=>a.t(()=>!!ml[k]))
+    a.t(Type.hasGetter(ml,'onStart'))
+    a.t(Type.hasSetter(ml,'onStart'))
+    a.t(Type.hasGetter(ml,'onEnd'))
+    a.t(Type.hasSetter(ml,'onEnd'))
+
+    // tags
+    console.log(ml.tags)
+    console.log(ml.tags())
+    console.log(ml.tags('http://www.w3.org/2000/svg'))
+    ;(function(){
+        const {svg, circle} = ml.tags('http://www.w3.org/2000/svg');
+        const S = svg({id:'test-svg',viewBox:'0, 5, 160, 100'}, circle({cx:10, cy:20, r:30, fill:'red'}))
+        document.body.append(S)
+        //document.body.append(svg({id:'test-svg',viewBox:'0, 5, 160, 100'}, circle({cx:10, cy:10, r:10, fill:'red'})))
+        const s = document.querySelector('#test-svg')
+        a.t(S===s)
+        a.t(S===ml.get('#test-svg'))
+        a.t('svg'===s.tagName)
+        a.t(0===s.viewBox.baseVal.x)
+        a.t(5===s.viewBox.baseVal.y)
+        a.t(160===s.viewBox.baseVal.width)
+        a.t(100===s.viewBox.baseVal.height)
+        const c = s.get('circle')
+        console.log(c.cx)
+        a.t(10===c.cx.value)
+        a.t(20===c.cy.value)
+        a.t(30===c.r.value)
+    })();
+
+    a.fin()
+
+
+    /*
+    // プロパティ存在確認
+    let el = document.createElement('p')
+    'attr,data,cp,class,attrs,datas,cps,classs,styles,E,N,get,gets,set,del,getX,getXs,setX,delX'.split(',').map(k=>{console.log(k);return a.t(()=>!!el[k])})
+    a.t(''===el.xpath)
+
+    // プロパティに代入しても無反応
+    //'attr,data,cp,class,attrs,datas,cps,classs,styles,E,N,get,gets,set,del,getX,getXs,setX,delX'.split(',').map(k=>a.t(()=>{el[k]=null;return null!==el[k]}))
+    'attr,data,cp,class,attrs,datas,cps,styles,E,N,get,gets,set,del,getX,getXs,setX,delX'.split(',').map(k=>a.t(()=>{el[k]=null;return null!==el[k]}))
+    a.e(TypeError, 'classsにセットする値は文字列かその配列であるべきです。', ()=>el.classs=null)
+
+    // id:                標準API（グローバル・アトリビュート）  キー未存在時''
+    // [gs]etAttribute(): 標準API                                キー未存在時null
+    // attr:              今回実装した機能                       キー未存在時null
+    a.t(''===el.id)
+    a.t(null===el.getAttribute('id'))
+    a.t(null===el.attr.id)
+    el.attr.id = 'some-id'
+    a.t('some-id'===el.id)
+    a.t('some-id'===el.attr.id)
+    a.t('some-id'===el.getAttribute('id'))
+    el.attr.id = ''
+    a.t(''===el.id)
+    a.t(''===el.attr.id)
+    a.t(''===el.getAttribute('id'))
+    el.attr.id = null
+    a.t(''===el.id)
+    a.t(null===el.attr.id)
+    a.t(null===el.getAttribute('id'))
+
+    // dataset: 標準API              キー未存在時undefined
+    // data:    今回実装した機能     キー未存在時null（getAttribute時と同じ）
+    a.t(undefined===el.dataset.myName)
+    a.t(null===el.data.myName)
+    el.data.myName = '山田'
+    a.t('山田'===el.dataset.myName)
+    a.t('山田'===el.data.myName)
+
+    // style.getPropertyValue: 標準API           キー未存在時''
+    // cp                    : 今回実装した機能  キー未存在時''
+    //console.log(getComputedStyle(el).getPropertyValue('--my-name'))
+    console.log(el.style.getPropertyValue('--my-name'))
+    console.log(el.cp.myName)
+    //a.t(''===getComputedStyle(el).getPropertyValue('--my-name'))
+    a.t(''===el.style.getPropertyValue('--my-name'))
+    a.t(''===el.cp.myName)
+    el.cp.myName = '鈴木'
+    a.t('鈴木'===el.style.getPropertyValue('--my-name'))
+    a.t('鈴木'===el.cp.myName)
+    //console.log(getComputedStyle(el).getPropertyValue('--my-name')) // ''
+    console.log(el.style.getPropertyValue('--my-name'))             // 鈴木
+    console.log(el.cp.myName)                                       // 鈴木
+    el.cp.myName = null
+    a.t(''===el.style.getPropertyValue('--my-name'))
+    a.t(''===el.cp.myName)
+    console.log(el.attr.style)
+    console.log(el)
+    el.attr.style = null
+    a.t(''===el.style.getPropertyValue('--my-name'))
+    a.t(''===el.cp.myName)
+
+    // getComputedStyle(el).getPropertyValue: 標準API           キー未存在時''
+    // CP                                   : 今回実装した機能  キー未存在時''
+    console.log(getComputedStyle(el).getPropertyValue('--my-name'))
+    a.t(''===getComputedStyle(el).getPropertyValue('--my-name'))
+    a.t(''===el.CP.myName)
+    a.e(TypeError, `getComputedStyle()にはセットできません。`, ()=>el.CP.myName = '鈴木')
+    // 値のセットはcpを使う。ただしdocumentにappendしないと取得できない
+    el.cp.myName = '田中'
+    a.t(''===getComputedStyle(el).getPropertyValue('--my-name'))
+    a.t(''===el.CP.myName)
+    document.body.append(el)
+    a.t('田中'===getComputedStyle(el).getPropertyValue('--my-name'))
+    a.t('田中'===el.CP.myName)
+    el.cp.myName = null
+    a.t(''===getComputedStyle(el).getPropertyValue('--my-name'))
+    a.t(''===el.CP.myName)
+
+    // class
+    a.t(!!el.class)
+    a.t(''===el.class.v)
+    a.t(Type.isIns(el.class.l, DOMTokenList))
+    a.e(TypeError, `class.vかclass.lのみ参照可能です。それぞれel.className, el.classListの略称です。`, ()=>el.class.x)
+    a.e(TypeError, `class.vかclass.lのみ参照可能です。それぞれel.className, el.classListの略称です。`, ()=>el.class.x=null)
+    el.class.v = 'a bc'
+    a.t('a bc'===el.class.v)
+    a.t(el.class.l.contains('a'))
+    a.t(el.class.l.contains('bc'))
+    a.f(el.class.l.contains('D'))
+    el.class.v = ['ef','ghi']
+    console.log(el.class.v)
+    a.t('ef ghi'===el.class.v)
+    a.t(el.class.l.contains('ef'))
+    a.t(el.class.l.contains('ghi'))
+    a.f(el.class.l.contains('J'))
+
+    // 複数形 attrs
+    console.log(el.attrs)
+    el.attrs = null
+    a.t(Type.isEmpO(el.attrs))
+    console.log(el.attrs)
+    console.log(Type.isEmpO(el.attrs))
+    el.attr.id = 'some-id'
+    el.data.someData = 'some-data'
+    el.style.color = 'black'
+    console.log(el.attrs)
+    a.t(el.attrs.hasOwnProperty('id'))
+    a.t(el.attrs.hasOwnProperty('dataSomeData'))
+    a.t(el.attrs.hasOwnProperty('style'))
+    a.t('some-id'===el.attrs.id)
+    a.t('some-data'===el.attrs.dataSomeData)
+    a.t('color: black;'===el.attrs.style)
+    el.attrs = null
+    el.attrs = {
+        id: 'some-id',
+        style: 'color: black;',
+        dataSomeData: 'some-data',
+    }
+    a.t(el.attrs.hasOwnProperty('id'))
+    a.t(el.attrs.hasOwnProperty('dataSomeData'))
+    a.t(el.attrs.hasOwnProperty('style'))
+    a.t('some-id'===el.attrs.id)
+    a.t('some-data'===el.attrs.dataSomeData)
+    a.t('color: black;'===el.attrs.style)
+
+    // 複数形 datas
+    el.datas = null
+    a.t(Type.isEmpO(el.datas))
+    el.datas = {
+        someData: 'some-data',
+        anyData: 'any-data',
+    }
+    console.log(el.datas)
+    a.t(el.datas.hasOwnProperty('someData'))
+    a.t(el.datas.hasOwnProperty('anyData'))
+    a.t('some-data'===el.datas.someData)
+    a.t('any-data'===el.datas.anyData)
+    el.datas = null
+
+    // 複数形 styles
+    el.styles = null
+    console.log(el.styles)
+    el.styles = {
+        color: 'black',
+        'background-color': 'green',
+        writingMode: 'vertical-rl',
+        _webkitColor: 'aaa',
+//        '-webkit-size': 'bbb',
+//        '-webkit-transition': 'all',
+        '-webkit-text-stroke-width': '3px',
+        _webkitTextStrokeColor: 'orange',
+        '--main-color': 'red',
+        __subColor: 'blue',
+    }
+    console.log(el.styles)
+    console.log(el.attr.style)
+    a.t(el.styles.hasOwnProperty('color'))
+    a.t(el.styles.hasOwnProperty('backgroundColor'))
+    a.t(el.styles.hasOwnProperty('writingMode'))
+    // 一括指定プロパティとして勝手に統合されてしまった！
+    a.t(el.styles.hasOwnProperty('_webkitTextStroke'))
+//    a.t(el.styles.hasOwnProperty('__webkitTextStrokeWidth'))
+//    a.t(el.styles.hasOwnProperty('__webkitTextStrokeColor'))
+//    a.t(el.styles.hasOwnProperty('__webkitColor'))
+//    a.t(el.styles.hasOwnProperty('__webkitSize'))
+    a.t(el.styles.hasOwnProperty('__mainColor'))
+    a.t(el.styles.hasOwnProperty('__subColor'))
+
+    a.t('black'===el.styles.color)
+    a.t('green'===el.styles.backgroundColor)
+    a.t('vertical-rl'===el.styles.writingMode)
+    a.t('red'===el.styles.__mainColor)
+    a.t('blue'===el.styles.__subColor)
+    // 一括指定プロパティとして勝手に統合されてしまった！
+    a.t('3px orange'===el.styles._webkitTextStroke)
+//    a.t('3px'===el.styles.__webkitTextStrokeWidth)
+//    a.t('orange'===el.styles.__webkitTextStrokeColor)
+
+    a.t('3px'===el.style['-webkit-text-stroke-width'])
+    a.t('orange'===el.style['-webkit-text-stroke-color'])
+    a.t('3px'===el.style.webkitTextStrokeWidth)
+    a.t('orange'===el.style.webkitTextStrokeColor)
+    a.t('3px'===el.style.getPropertyValue('-webkit-text-stroke-width'))
+    a.t('orange'===el.style.getPropertyValue('-webkit-text-stroke-color'))
+//    a.t('3px'===el.style.getPropertyValue('webkitTextStrokeWidth'))
+//    a.t('orange'===el.style.getPropertyValue('webkitTextStrokeColor'))
+
+
+
+    // 複数形 cps
+    el.cps = null
+    console.log(el.cps)
+    a.t(Type.isEmpO(el.cps))
+    el.cps = {
+        mainColor: 'black',
+        subColor: 'yellow',
+    }
+    console.log(el.cps)
+    a.t(el.cps.hasOwnProperty('mainColor'))
+    a.t(el.cps.hasOwnProperty('subColor'))
+    a.t('black'===el.cps.mainColor)
+    a.t('yellow'===el.cps.subColor)
+    a.t('black'===el.styles.__mainColor)
+    a.t('yellow'===el.styles.__subColor)
+    console.log(el.cps)
+    console.log(el.attr.style)
+    el.cps = null
+
+    // 複数形 CPS
+    console.log(el.CPS)
+    a.e(TypeError, `getComputedStyle()にはセットできません。`, ()=>el.CPS=null)
+    el.cp.mainColor='black'
+    a.t(()=>'black'===el.CPS.mainColor)
+    el.cp.mainColor=null
+    console.log(el.CPS)
+    a.f(()=>el.CPS.hasOwnProperty('mainColor'))
+
+    // 複数形 classs
+    a.t(!!el.classs)
+    console.log(el.classs)
+    console.log(Type.isItr(el.classs))
+    console.log(el.classs)
+    a.t(Type.isEmpty(el.classs))
+    a.t(Type.isEmpL(el.classs))
+//    a.t(Type.isIns(el.classs.l, DOMTokenList))
+    //a.e(TypeError, `class.vかclass.lのみ参照可能です。それぞれel.className, el.classListの略称です。`, ()=>el.class.x)
+    //a.e(TypeError, `class.vかclass.lのみ参照可能です。それぞれel.className, el.classListの略称です。`, ()=>el.class.x=null)
+    a.e(TypeError, `classsにセットする値は文字列かその配列であるべきです。`, ()=>el.classs=null)
+    el.classs='a bc'
+//    el.class.v = 'a bc'
+    a.t('a bc'===el.class.v)
+    a.t(el.class.l.contains('a'))
+    a.t(el.class.l.contains('bc'))
+    a.f(el.class.l.contains('D'))
+    a.t(el.classs.compare(['a', 'bc']))
+
+//    el.class.v = ['ef','ghi']
+    el.classs = ['ef','ghi']
+    console.log(el.class.v)
+    a.t('ef ghi'===el.class.v)
+    a.t(el.class.l.contains('ef'))
+    a.t(el.class.l.contains('ghi'))
+    a.f(el.class.l.contains('J'))
+    a.t(el.classs.compare(['ef', 'ghi']))
+
+    // xpath
+    console.log(el.xpath)
+    a.t('/html/body/p'===el.xpath)
+    el.remove()
+    console.log(el.xpath)
+    a.t(''===el.xpath)
+    el = document.createElement('p')
+    a.t(''===el.xpath)
+
+    // set  replaceWith
+    let span = document.createElement('span')
+    el.append(span)
+    a.t(null===el.get('span'))
+    document.body.append(el)   // append しないと取得できない！
+    a.t(span===el.get('span'))
+    el.append(document.createElement('span'))
+    console.log(el.gets('span'))
+    a.t(2===el.gets('span').length)
+    el.get('span').set(document.createElement('i'))
+    console.log(el)
+    a.t(2===el.children.length && 1===el.gets('span').length && 1===el.gets('i').length)
+
+    // del  remove
+    el.get('i').remove()
+    a.t(1===el.children.length && 1===el.gets('span').length)
+
+    // getX
+    console.log(span)
+    console.log(span.xpath)
+    console.log(el.get('span').xpath)
+    a.t(el.get('span')===el.getX(el.get('span').xpath))
+
+    // getXs
+    a.t([el.get('span')].compare(el.getXs(el.get('span').xpath)))
+
+    // setX
+    el.setX(el.get('span').xpath, document.createElement('i'))
+    a.t(el.get('i')===el.getX(el.get('i').xpath))
+
+    // delX
+    el.delX(el.get('i').xpath)
+    a.t(0===el.children.length)
+
+    // add,pdd,ins,pns
+    el.add(document.createElement('span'))
+    a.t(1===el.children.length && el.get('span')===el.children[0])
+    el.add(document.createElement('i'))
+    a.t(2===el.children.length && el.get('span')===el.children[0] && el.get('i')===el.children[1])
+
+    el.pdd(document.createElement('b'))
+    a.t(3===el.children.length && el.get('b')===el.children[0] && el.get('span')===el.children[1] && el.get('i')===el.children[2])
+
+    el.get('b').ins(document.createElement('q'))
+    a.t(4===el.children.length && el.get('b')===el.children[0] && el.get('q')===el.children[1] && el.get('span')===el.children[2] && el.get('i')===el.children[3])
+
+    el.get('b').pns(document.createElement('s'))
+    a.t(5===el.children.length && el.get('s')===el.children[0] && el.get('b')===el.children[1] && el.get('q')===el.children[2] && el.get('span')===el.children[3] && el.get('i')===el.children[4])
+
+    // getP  closest(q)
+    a.t(el===el.get('b').getP('p'))
+
+    // E系ではtextNodeやcomment等element以外の要素は取得できない
+    const textNode = document.createTextNode('text-node')
+    el.get('s').pns(textNode)
+    a.t(5===el.children.length && el.get('s')===el.children[0] && el.get('b')===el.children[1] && el.get('q')===el.children[2] && el.get('span')===el.children[3] && el.get('i')===el.children[4])
+    const commentNode = document.createComment('comment-node')
+    el.get('s').pns(commentNode)
+    a.t(5===el.children.length && el.get('s')===el.children[0] && el.get('b')===el.children[1] && el.get('q')===el.children[2] && el.get('span')===el.children[3] && el.get('i')===el.children[4])
+
+    // E系 name,next/prev/,parent/children,first/last,
+    a.t('P'===el.E.name)
+    a.t(null===el.E.next) // elは最終要素である（次の要素がない）
+    console.log(el.E.next)
+    console.log(el.get('s'))
+    console.log(el.get('s').E.next)
+    console.log(el.get('s').E.prev)
+    console.log(el.get('s').E.parent)
+    console.log(el.E.children)
+    a.t(el.get('b')===el.get('s').E.next)
+    a.t(null===el.get('s').E.prev)
+    a.t(el.get('i')===el.get('span').E.next)
+    a.t(null===el.get('i').E.next)
+    a.t(el.get('span')===el.get('i').E.prev)
+
+    a.t(el===el.get('span').E.parent)
+    a.t(5===el.E.children.length && el.get('s')===el.E.children[0] && el.get('b')===el.E.children[1] && el.get('q')===el.E.children[2] && el.get('span')===el.E.children[3] && el.get('i')===el.E.children[4])
+
+    a.t(el.get('s')===el.E.firstChild)
+    a.t(el.get('i')===el.E.lastChild)
+    a.t(el.get('s')===el.get('q').E.first)
+    a.t(el.get('i')===el.get('q').E.last)
+
+    a.t(el.get('s').E.isFirst)
+    a.f(el.get('s').E.isLast)
+    a.f(el.get('i').E.isFirst)
+    a.t(el.get('i').E.isLast)
+
+    a.t(el.E.hasChild)
+    a.t(el.E.hasParent)
+    a.f(el.get('s').E.hasChild)
+    a.t(el.get('s').E.hasParent)
+    a.f(document.querySelector(':root').E.hasParent)
+
+    a.t(0===document.querySelector(':root').E.ancestors.length)
+    a.t(3===el.get('s').E.ancestors.length 
+        && el===el.get('s').E.ancestors[0] 
+        && document.querySelector('body')===el.get('s').E.ancestors[1] 
+        && document.querySelector(':root')===el.get('s').E.ancestors[2])
+
+    // N系
+
+    // N系ではtextNodeやcomment等element以外の要素も取得できる
+    console.log(el.childNodes.length, el.childNodes, el.TEXT_NODE, el.childNodes[0].nodeType, el.COMMENT_NODE, el.childNodes[1].nodeType, el.ELEMENT_NODE, el.childNodes[2].nodeType, el.childNodes[3].nodeType, el.childNodes[4].nodeType, el.childNodes[5].nodeType, el.childNodes[6].nodeType)
+    a.t(7===el.childNodes.length)
+    console.log()
+    a.t(el.TEXT_NODE===el.childNodes[0].nodeType && 'text-node'===el.childNodes[0].nodeValue)
+    a.t(el.COMMENT_NODE===el.childNodes[1].nodeType && 'comment-node'===el.childNodes[1].nodeValue)
+    a.t(el.ELEMENT_NODE===el.childNodes[2].nodeType && 'S'===el.childNodes[2].tagName)
+    a.t(el.ELEMENT_NODE===el.childNodes[3].nodeType && 'B'===el.childNodes[3].tagName)
+    a.t(el.ELEMENT_NODE===el.childNodes[4].nodeType && 'Q'===el.childNodes[4].tagName)
+    a.t(el.ELEMENT_NODE===el.childNodes[5].nodeType && 'SPAN'===el.childNodes[5].tagName)
+    a.t(el.ELEMENT_NODE===el.childNodes[6].nodeType && 'I'===el.childNodes[6].tagName)
+
+    // N系 name,next/prev/,parent/children,first/last,
+    a.t('P'===el.N.name)
+    a.t(null===el.N.next) // elは最終要素である（次の要素がない）
+    console.log(el.N.next)
+    console.log(el.get('s'))
+    console.log(el.get('s').E.next)
+    console.log(el.get('s').E.prev)
+    console.log(el.get('s').E.parent)
+    console.log(el.N.children)
+    a.t(el.get('b')===el.get('s').E.next)
+    a.t(null===el.get('s').E.prev)
+    a.t(el.get('i')===el.get('span').E.next)
+    a.t(null===el.get('i').E.next)
+    a.t(el.get('span')===el.get('i').E.prev)
+
+    a.t(el===el.get('span').E.parent)
+//    a.t(5===el.N.children.length && el.get('s')===el.N.children[0] && el.get('b')===el.N.children[1] && el.get('q')===el.N.children[2] && el.get('span')===el.N.children[3] && el.get('i')===el.N.children[4])
+    a.t(el.TEXT_NODE===el.N.children[0].nodeType && 'text-node'===el.N.children[0].nodeValue)
+    a.t(el.COMMENT_NODE===el.N.children[1].nodeType && 'comment-node'===el.childNodes[1].nodeValue)
+    a.t(el.ELEMENT_NODE===el.N.children[2].nodeType && 'S'===el.childNodes[2].tagName)
+    a.t(el.ELEMENT_NODE===el.N.children[3].nodeType && 'B'===el.childNodes[3].tagName)
+    a.t(el.ELEMENT_NODE===el.N.children[4].nodeType && 'Q'===el.childNodes[4].tagName)
+    a.t(el.ELEMENT_NODE===el.N.children[5].nodeType && 'SPAN'===el.childNodes[5].tagName)
+    a.t(el.ELEMENT_NODE===el.N.children[6].nodeType && 'I'===el.childNodes[6].tagName)
+
+    // テキストノードやコメントノードはNodeであってElementではないため、Element.prototypeに実装したメソッドは継承されない！
+    // しかも実際はNodeオブジェクトは存在しないため実装不可能……よって el.N.firstChild.N.type のようなコードでテキストノードの場合はundefinedになり取得できない
+    console.log(el.N.firstChild.N)
+    console.log(el.N.firstChild)
+    console.log(el.N.lastChild)
+    console.log(el.N.lastChild.N)
+
+    a.t(el.TEXT_NODE===el.N.firstChild.nodeType)
+    a.t(el.get('i')===el.N.lastChild)
+    a.t(el.get('s')===el.get('q').E.first)
+    a.t(el.get('i')===el.get('q').E.last)
+
+    a.t(el.get('s').E.isFirst)
+    a.f(el.get('s').E.isLast)
+    a.f(el.get('i').E.isFirst)
+    a.t(el.get('i').E.isLast)
+
+    a.t(el.N.hasChild)
+    a.t(el.N.hasParent)
+    a.f(el.get('s').E.hasChild)
+    a.t(el.get('s').E.hasParent)
+    a.f(document.querySelector(':root').E.hasParent)
+
+    a.t(0===document.querySelector(':root').E.ancestors.length)
+    a.t(3===el.get('s').E.ancestors.length 
+        && el===el.get('s').E.ancestors[0] 
+        && document.querySelector('body')===el.get('s').E.ancestors[1] 
+        && document.querySelector(':root')===el.get('s').E.ancestors[2])
+
+    console.log(el.N.children)
+    console.log(el.N.children[0].constructor)
+    console.log(el.N.children[0].prototype)
+    console.log(el.N.children[0].type)
+//    a.t(el.TEXT_NODE===el.N.children[0].type)
+    console.log(el.N.children[0].N) // N.childrenを経由したらNが消える…（独自実装はすべて消える…）
+//    a.t(el.TEXT_NODE===el.N.children[0].N.type) // N.childrenを経由したらNが消える
+    a.t(el.TEXT_NODE===el.N.children[0].nodeType)
+//    a.t('text'===el.N.children[0].typeName)
+
+    // 取得された要素から独自実装が消えている…
+    console.log(el.children, el.childNodes) 
+
+    // ノード系には独自実装が継承されていない…
+    console.log(textNode)
+    console.log(commentNode)
+    console.log(commentNode.xpath)
+    // children/childNodesを経由せねば独自実装を取得できる
+    a.t(el.ELEMENT_NODE===el.N.type)
+    a.t('element'===el.N.typeName)
+    a.t('P'===el.N.name)
+    console.log(el.N.types)
+    console.log(el.N.typeNames)
+    a.t(["element", "attribute", "text", "cdataSection", "processingInstruction", "comment", "document", "documentType", "documentFragment"].compare(el.N.typeNames))
+    a.t(el.ELEMENT_NODE===el.N.types.element)
+    a.t(el.ATTRIBUTE_NODE===el.N.types.attribute)
+    a.t(el.TEXT_NODE===el.N.types.text)
+    a.t(el.CDATA_SECTION_NODE===el.N.types.cdataSection)
+    a.t(el.PROCESSING_INSTRUCTION_NODE===el.N.types.processingInstruction)
+    a.t(el.COMMENT_NODE===el.N.types.comment)
+    a.t(el.DOCUMENT_NODE===el.N.types.document)
+    a.t(el.DOCUMENT_TYPE_NODE===el.N.types.documentType)
+    a.t(el.DOCUMENT_FRAGMENT_NODE===el.N.types.documentFragment)
+    console.log(el.N.typeObj)
+    console.log(el.N.typeAry)
+    console.log(el.N.typeMap)
+    a.t('element'===el.N.getTypeName(el.ELEMENT_NODE))
+    a.t('attribute'===el.N.getTypeName(el.ATTRIBUTE_NODE))
+    a.t('text'===el.N.getTypeName(el.TEXT_NODE))
+        console.log(el.N.getTypeName(el.CDATA_SECTION_NODE))
+    a.t('cdataSection'===el.N.getTypeName(el.CDATA_SECTION_NODE))
+    a.t('processingInstruction'===el.N.getTypeName(el.PROCESSING_INSTRUCTION_NODE))
+    a.t('comment'===el.N.getTypeName(el.COMMENT_NODE))
+    a.t('document'===el.N.getTypeName(el.DOCUMENT_NODE))
+    a.t('documentType'===el.N.getTypeName(el.DOCUMENT_TYPE_NODE))
+    a.t('documentFragment'===el.N.getTypeName(el.DOCUMENT_FRAGMENT_NODE))
+
+    // ノードと要素が混在したchildrenに何らかの処理を行いたい場合
+    // nodeTypeで場合分けすることになる
+    // これが面倒なので糖衣構文を用意したい。
+    console.log(el.N.mapChildrenByType({
+        text: (n,i,gi)=>`#text:[${i}][${gi}]${n.nodeValue}`,
+        comment: (n,i,gi)=>`#comment:[${i}][${gi}]${n.nodeValue}`,
+        element: (n,i,gi)=>`#element:[${i}][${gi}][${n.nodeName}]${n.nodeValue}`,
+    }))
+    console.log(el)
+    el.N.setChildrenByType({
+        text: (n,i,gi)=>document.createTextNode(`#text:[${i}][${gi}]${n.nodeValue}`),
+        comment: (n,i,gi)=>document.createComment(`#comment:[${i}][${gi}]${n.nodeValue}`),
+        element: (n,i,gi)=>{n.textContent=`#element:[${i}][${gi}][${n.nodeName}]${n.nodeValue}`;return n;},
+    })
+    console.log(el)
+
+//    el.replaceChild(document.createTextNode('XXXXXXXX'), el.N.children[0])
+    a.fin()
+    */
+})
+</script>
+
+<h1></h1>
+<header></header>
+<main></main>
+<footer></footer>
+
