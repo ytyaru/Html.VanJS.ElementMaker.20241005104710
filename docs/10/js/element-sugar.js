@@ -299,4 +299,22 @@ class XPath {
     }
     static #get(xpath, typ=XPathResult.ORDERED_NODE_SNAPSHOT_TYPE) {return document.evaluate(xpath, document, null, typ, null)}
 }
+
+Object.defineProperties(Text.prototype, {
+    N: {
+        get() {
+            if (!this._node){this._node=new Node(this)}
+            return this._node;
+        },
+    },
+});
+Object.defineProperties(Comment.prototype, {
+    N: {
+        get() {
+            if (!this._node){this._node=new Node(this)}
+            return this._node;
+        },
+    },
+});
+
 })();

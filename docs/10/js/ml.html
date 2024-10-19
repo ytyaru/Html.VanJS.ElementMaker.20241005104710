@@ -14,11 +14,14 @@ window.addEventListener('DOMContentLoaded', (event) => {
     const a = new Assertion()
     const bb = new BlackBox(a)
     // プロパティ存在確認
-    'tags,mkFrg,mkTxt,mkCmt,mkCdt,mkProcInst,mkAttr,root,add,addRoot,get,gets,set,del,getPath,getX,getXs,setX,delX,on,off'.split(',').map(k=>a.t(()=>!!ml[k]))
+    //'tags,mkFrg,mkTxt,mkCmt,mkCdt,mkProcInst,mkAttr,root,add,addRoot,get,gets,set,del,getPath,getX,getXs,setX,delX,on,off'.split(',').map(k=>a.t(()=>!!ml[k]))
+    'tags,root,add,addRoot,get,gets,set,del,getPath,getX,getXs,setX,delX,on,off'.split(',').map(k=>a.t(()=>!!ml[k]))
     a.t(Type.hasGetter(ml,'onStart'))
     a.t(Type.hasSetter(ml,'onStart'))
     a.t(Type.hasGetter(ml,'onEnd'))
     a.t(Type.hasSetter(ml,'onEnd'))
+    a.t(Type.hasGetter(ml,'nodes'))
+    a.f(Type.hasSetter(ml,'nodes'))
 
     // tags
     console.log(ml.tags)
@@ -39,9 +42,14 @@ window.addEventListener('DOMContentLoaded', (event) => {
         a.t(100===s.viewBox.baseVal.height)
         const c = s.get('circle')
         console.log(c.cx)
-        a.t(10===c.cx.value)
-        a.t(20===c.cy.value)
-        a.t(30===c.r.value)
+        a.t(10===c.cx.baseVal.value)
+        a.t(20===c.cy.baseVal.value)
+        a.t(30===c.r.baseVal.value)
+    })();
+    ;(function(){
+        const span = ml.tags.span()
+        a.t('SPAN'===span.tagName)
+        a.t(HTMLSpanElement===span.constructor)
     })();
 
     a.fin()

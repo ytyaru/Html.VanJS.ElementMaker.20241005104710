@@ -1,6 +1,7 @@
 ;(function(){
 // 依存ライブラリ Type(isObj,isFn,getSetter)
 class ML { // 要素を操作する（生成、追加、取得、置換、削除）。CSSセレクタ／XPath
+    constructor(){this._nodes=new Nodes();}
     // createElement[NS]
     get tags(){return new Proxy(ns=>new Proxy(this.#tag, this.#handler(ns)), this.#handler())}
     #handler(ns){return {get:(_,name)=>this.#tag.bind(this, ns, name)}}
@@ -17,12 +18,13 @@ class ML { // 要素を操作する（生成、追加、取得、置換、削除
         : el.setAttribute.bind(el, k, v)
     }
     // create[TextNode/Comment/DocumentFragment/CDATA/PI/Attr]
-    mkFrg(...els){return document.createDocumentFragment(...els)}
-    mkTxt(v){return document.createTextNode(v)}
-    mkCmt(v){return document.createComment(v)}
-    mkCdt(v){return document.createCDATASection(v)}
-    mkProcInst(t,d){return document.createProcessingInstruction(t,d)}
-    mkAttr(n){return document.createAttribute(n)}
+    get nodes() { return this._nodes }
+    //mkFrg(...els){return document.createDocumentFragment(...els)}
+    //mkTxt(v){return document.createTextNode(v)}
+    //mkCmt(v){return document.createComment(v)}
+    //mkCdt(v){return document.createCDATASection(v)}
+    //mkProcInst(t,d){return document.createProcessingInstruction(t,d)}
+    //mkAttr(n){return document.createAttribute(n)}
 
     get root() { return document.querySelector(':root') }
     add(el, ...children) {
@@ -53,6 +55,21 @@ class ML { // 要素を操作する（生成、追加、取得、置換、削除
     set onEnd(fn) { window.events.on('beforeunload', fn) }
 
 }
+class Nodes {
+    frag(...els){return document.createDocumentFragment(...els)}
+    text(v){return document.createTextNode(v)}
+    comment(v){return document.createComment(v)}
+    cdata(v){return document.createCDATASection(v)}
+    proc(t,d){return document.createProcessingInstruction(t,d)}
+    //attr(n){return document.createAttribute(n)}
+    get attr(){return new Proxy(ns=>new Proxy(this.#attr, this.#handler(ns)), this.#handler())}
+    #handler(ns){return {get:(_,name)=>this.#attr.bind(this, ns, name)}}
+    #attr(ns, name, value) {
+        const attr = ns ? document.createAttributeNS(ns, name.case.chain) : document.createAttribute(name.case.chain)
+        attr.value = value
+        return attr
+    }
+}
 class Css {
     constructor() {
         this._v = new Proxy(this, {
@@ -74,6 +91,7 @@ class Css {
     get V() {return this._V} // CSS variable / CSS Custom Property  getComputedStyle
     get sheets() {return document.styleSheets}
 }
+
 class XPath {
     static getPath(el) {
         if(el && el.parentNode) {
