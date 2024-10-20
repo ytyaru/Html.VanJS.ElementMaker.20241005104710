@@ -14,21 +14,22 @@ window.addEventListener('DOMContentLoaded', (event) => {
     const a = new Assertion()
     const bb = new BlackBox(a)
     // プロパティ存在確認
-    //'tags,mkFrg,mkTxt,mkCmt,mkCdt,mkProcInst,mkAttr,root,add,addRoot,get,gets,set,del,getPath,getX,getXs,setX,delX,on,off'.split(',').map(k=>a.t(()=>!!ml[k]))
-    'tags,root,add,addRoot,get,gets,set,del,getPath,getX,getXs,setX,delX,on,off'.split(',').map(k=>a.t(()=>!!ml[k]))
+    //'el,mkFrg,mkTxt,mkCmt,mkCdt,mkProcInst,mkAttr,root,add,addRoot,get,gets,set,del,getPath,getX,getXs,setX,delX,on,off'.split(',').map(k=>a.t(()=>!!ml[k]))
+    'el,root,add,addRoot,get,gets,set,del,getPath,getX,getXs,setX,delX,on,off'.split(',').map(k=>a.t(()=>!!ml[k]))
     a.t(Type.hasGetter(ml,'onStart'))
     a.t(Type.hasSetter(ml,'onStart'))
     a.t(Type.hasGetter(ml,'onEnd'))
     a.t(Type.hasSetter(ml,'onEnd'))
-    a.t(Type.hasGetter(ml,'nodes'))
-    a.f(Type.hasSetter(ml,'nodes'))
+    a.t(Type.hasGetter(ml,'node'))
+    a.f(Type.hasSetter(ml,'node'))
 
-    // tags
-    console.log(ml.tags)
-    console.log(ml.tags())
-    console.log(ml.tags('http://www.w3.org/2000/svg'))
+    // el
+    console.log(ml.el)
+    console.log(ml.el())
+    console.log(ml.el('http://www.w3.org/2000/svg'))
+    // 名前空間あり（SVG）
     ;(function(){
-        const {svg, circle} = ml.tags('http://www.w3.org/2000/svg');
+        const {svg, circle} = ml.el('http://www.w3.org/2000/svg');
         const S = svg({id:'test-svg',viewBox:'0, 5, 160, 100'}, circle({cx:10, cy:20, r:30, fill:'red'}))
         document.body.append(S)
         //document.body.append(svg({id:'test-svg',viewBox:'0, 5, 160, 100'}, circle({cx:10, cy:10, r:10, fill:'red'})))
@@ -46,11 +47,208 @@ window.addEventListener('DOMContentLoaded', (event) => {
         a.t(20===c.cy.baseVal.value)
         a.t(30===c.r.baseVal.value)
     })();
+    // 名前空間なし（HTML）
     ;(function(){
-        const span = ml.tags.span()
+        const span = ml.el.span()
         a.t('SPAN'===span.tagName)
         a.t(HTMLSpanElement===span.constructor)
+        const i = ml.el.i({id:'i-id'})
+        a.t('I'===i.tagName)
+        a.t(HTMLElement===i.constructor)
+        a.t('i-id'===i.id)
+        a.t(null===ml.get('#i-id'))
+        ml.addRoot(i)
+        a.t(i===ml.get('#i-id'))
+        i.del()
+        a.t(null===ml.get('#i-id'))
+        const b = ml.el.b({id:'b-id', class:'a b-c', style:'color:red; writing-mode:vertical-rl;', dataSomeKey:'some-data'}, 'bold-text-node')
+        a.t('b-id'===b.attr.id)
+        a.t('a b-c'===b.attr.class)
+        a.t('color: red; writing-mode: vertical-rl;'===b.attr.style) // space等が勝手に調整されてしまう
+        a.t('some-data'===b.attr.dataSomeKey)
+        a.t('red'===b.style.color)
+        a.t('vertical-rl'===b.style.writingMode)
+        a.t('some-data'===b.data.someKey)
+        a.t('bold-text-node'===b.text)
+        a.t('<b id="b-id" class="a b-c" data-some-key="some-data" style="color: red; writing-mode: vertical-rl;">bold-text-node</b>'===b.html)
+        //a.t(null===ml.root.get('p'))
     })();
+
+    // node
+    ;(function(){
+        //const el = ml.el.p()
+        'frag,text,comment,cdata,proc,attr,el'.split(',').map(k=>a.t(()=>!!ml.node[k]))
+        a.t(ml.root.N.typeObj.documentFragment === ml.node.frag().N.type)
+        a.t(ml.root.N.typeObj.text === ml.node.text().N.type)
+        a.t(ml.root.N.typeObj.comment === ml.node.comment().N.type)
+        //a.t(ml.root.N.typeObj.cdata === ml.node.cdata().N.type)
+        a.e(DOMException, `Failed to execute 'createCDATASection' on 'Document': This operation is not supported for HTML documents.`, ()=>ml.node.cdata().N.type)
+        a.t(ml.root.N.typeObj.processingInstruction === ml.node.proc().N.type)
+        a.t(ml.root.N.typeObj.attr === ml.node.attr().N.type)
+        a.t(ml.root.N.typeObj.element === ml.node.el.p().N.type)
+
+        const frag = ml.node.frag(ml.el.span('A'), ml.el.span('B'))
+        console.log(frag)
+        const p = ml.el.p(frag)
+        console.log(p)
+        ml.root.add(p)
+        const spans = p.gets('span')
+        console.log(p)
+        console.log(spans.length)
+        console.log(spans.length, 'A'===spans[0].textContent, 'B'===spans[1].textContent)
+        //console.log(2===spans.length, 'A'===spans[0].N.text, 'B'===spans[1].N.text)
+        a.t(2===p.gets('span').length &&'A'===spans[0].text && 'B'===spans[1].text)
+        p.del()
+//        console.log(p, ml.root.get('p'))
+//        a.t(null===ml.root.get('p'))
+    })();
+
+    // root
+    ;(function(){
+        a.t(document.querySelector(':root')===ml.root)
+    })();
+
+    // add
+    ;(function(){
+        const p = ml.el.p()
+        ml.add(p, ml.el.span('A'))
+        a.t(1===p.children.length && 'A'===p.children[0].text)
+        ml.add(p, ml.el.span('B'), ml.el.span('C'))
+        a.t(3===p.children.length && 'A'===p.children[0].text && 'B'===p.children[1].text && 'C'===p.children[2].text)
+
+        p.add(ml.el.span('D'), ml.el.span('E'))
+        a.t(5===p.children.length && 'A'===p.children[0].text && 'B'===p.children[1].text && 'C'===p.children[2].text && 'D'===p.children[3].text && 'E'===p.children[4].text)
+        p.del()
+//        a.t(null===ml.root.get('p'))
+    })();
+
+    // addRoot
+    ;(function(){
+        const p = ml.el.p({id:'test-p'}, 'test-p')
+        ml.addRoot(p)
+        a.t(p===ml.get('#test-p'))
+        p.del()
+        a.t(null===ml.get('#test-p'))
+
+        ml.root.add(p)
+        a.t(p===ml.get('#test-p'))
+        p.del()
+        a.t(null===ml.get('#test-p'))
+    })();
+
+    // get
+    ;(function(){
+        const p = ml.el.p(ml.el.span({id:'A'},'A'), ml.el.span({id:'B'},'B'), ml.el.span({id:'C'},'C'))
+        ml.root.add(p)
+        a.t(ml.get('#B')===document.querySelector('#B'))
+        p.del()
+    })();
+
+    // gets
+    ;(function(){
+        const p = ml.el.p(ml.el.span({id:'A'},'A'), ml.el.span({id:'B'},'B'), ml.el.span({id:'C'},'C'))
+        ml.root.add(p)
+        const spans = ml.gets('span')
+        a.t(3===spans.length &&'A'===spans[0].text &&'B'===spans[1].text &&'C'===spans[2].text)
+        p.del()
+        //console.log(ml.get('p'))
+        //a.t(null===ml.get('p'))
+    })();
+
+    // getP  closest
+    ;(function(){
+        const i = ml.el.i({id:'id-i'})
+        const p = ml.el.p(i, ml.el.span({id:'A'},'A'), ml.el.span({id:'B'},'B'), ml.el.span({id:'C'},'C'))
+        const divC = ml.el.div({class:'class-div-c'})
+        const divP = ml.el.div({class:'class-div-p'})
+        p.add(i)
+        divC.add(p)
+        divP.add(divC)
+        a.t(divP===i.closest('.class-div-p'))
+        a.t(divP===ml.getP(i,'.class-div-p'))
+        a.t(divP===i.getP('.class-div-p'))
+    })();
+
+    // set
+    ;(function(){
+        const p = ml.el.p({id:'id-p'})
+        ml.root.add(p)
+        a.t(p===ml.root.get('#id-p'))
+        const ruby = ml.el.ruby({id:'id-ruby'})
+        ml.set(p, ruby)
+        a.t(null===ml.root.get('#id-p'))
+        a.t(!!ml.root.get('#id-ruby'))
+        p.del()
+        ruby.del()
+    })();
+
+    // del
+    ;(function(){
+        const p = ml.el.p({id:'id-p'})
+        ml.root.add(p)
+        a.t(p===ml.root.get('#id-p'))
+        p.del()
+        a.t(null===ml.root.get('#id-p'))
+    })();
+
+    // getPath
+    ;(function(){
+        const i = ml.el.i({id:'id-i'})
+        a.e(TypeError, `Element has no parent node. The element may not have been added to the document. Please do document.body.append(el).`, ()=>ml.getPath(i))
+        ml.root.add(i)
+        a.t('/html/i'===ml.getPath(i))
+        i.del()
+    })();
+
+    // getX
+    ;(function(){
+        const p = ml.el.p({id:'id-p'})
+        const i = ml.el.i({id:'id-i'})
+        p.add(i)
+        ml.root.add(p)
+        console.log(i.xpath)
+        console.log(ml.getX('/html/p/i'))
+        a.t(i===ml.getX('/html/p/i'))
+
+        let A = document.evaluate('/html/p/i', document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+        let ans = [...Array(A.snapshotLength)].map((_,i)=>A.snapshotItem(i))
+        console.log(ans)
+        A = document.evaluate('//p/i', document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+        ans = [...Array(A.snapshotLength)].map((_,i)=>A.snapshotItem(i))
+        A = document.evaluate('//i', p, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+        ans = [...Array(A.snapshotLength)].map((_,i)=>A.snapshotItem(i))
+        console.log(ans)
+//        i.del()
+//        p.del()
+    })();
+
+    // setX
+    // delX
+    // on
+    // off
+    // onStart
+    // onEnd
+
+
+    ;(function(){
+        const p = ml.el.p(ml.el.span('A'), ml.el.span('B'), ml.el.span('C'))
+        console.log(p)
+        console.log(p.get('span'))
+        a.t('A'===p.get('span').text)
+        console.log(p.gets('span'))
+        console.log(p.querySelectorAll('span'))
+        const spans = [...p.gets('span')]
+        console.log(spans)
+        a.t(3===spans.length &&'A'===spans[0].text &&'B'===spans[1].text &&'C'===spans[2].text)
+        p.del()
+    })();
+    ;(function(){
+    })();
+
+
+    ;(function(){
+    })();
+
 
     a.fin()
 

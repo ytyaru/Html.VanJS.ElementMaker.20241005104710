@@ -1,14 +1,15 @@
 ;(function(){
 // 依存ライブラリ Type(isObj,isFn,getSetter)
 class ML { // 要素を操作する（生成、追加、取得、置換、削除）。CSSセレクタ／XPath
-    constructor(){this._nodes=new Nodes();}
+    constructor(){this._node=new Nodes();}
     // createElement[NS]
-    get tags(){return new Proxy(ns=>new Proxy(this.#tag, this.#handler(ns)), this.#handler())}
-    #handler(ns){return {get:(_,name)=>this.#tag.bind(this, ns, name)}}
-    #tag(ns, name, ...args) {
+    get el(){return new Proxy(ns=>new Proxy(this.#el, this.#handler(ns)), this.#handler())}
+    #handler(ns){return {get:(_,name)=>this.#el.bind(this, ns, name)}}
+    #el(ns, name, ...args) {
         const [props, ...children] = Type.isObj(args[0] ?? 0) ? args : [{}, ...args];
         const el = ns ? document.createElementNS(ns, name) : document.createElement(name)
-        for (let [k, v] of Object.entries(props)) {this.#getSetter(el, k, v, Type.getSetter(el, k))()}
+        //for (let [k, v] of Object.entries(props)) {this.#getSetter(el, k, v, Type.getSetter(el, k))();}
+        for (let [k, v] of Object.entries(props)) {const K=/^data[A-Z]/.test(k) ? k.case.chain : k; console.log(K);this.#getSetter(el, K, v, Type.getSetter(el, K))();}
         console.log(this)
         return this.add(el, children)
     }
@@ -18,7 +19,7 @@ class ML { // 要素を操作する（生成、追加、取得、置換、削除
         : el.setAttribute.bind(el, k, v)
     }
     // create[TextNode/Comment/DocumentFragment/CDATA/PI/Attr]
-    get nodes() { return this._nodes }
+    get node() { return this._node }
     //mkFrg(...els){return document.createDocumentFragment(...els)}
     //mkTxt(v){return document.createTextNode(v)}
     //mkCmt(v){return document.createComment(v)}
@@ -36,8 +37,10 @@ class ML { // 要素を操作する（生成、追加、取得、置換、削除
     addRoot(...cs) {return this.add(this.root, ...cs)}
     get(q,e){return (e ?? this.root).querySelector(q)}
     gets(q,e){return (e ?? this.root).querySelectorAll(q)}
+    //getP(q,e){console.log(e,this.root);return (e ?? this.root).closest(q)}
+    getP(e,q){return e.closest(q)}
     set(e, ...cs){return e.replaceWith(...cs)}
-    del(e){e.remove()}
+    del(e){return e.remove()}
     // XPath系
     getPath(e){return XPath.getPath(e)}
     getX(xpath,e){return XPath.getEl(xpath, e ?? this.root)}
@@ -56,7 +59,8 @@ class ML { // 要素を操作する（生成、追加、取得、置換、削除
 
 }
 class Nodes {
-    frag(...els){return document.createDocumentFragment(...els)}
+//    frag(...els){return document.createDocumentFragment(...els)}
+    frag(...els){const f=document.createDocumentFragment(); f.append(...els); return f;}
     text(v){return document.createTextNode(v)}
     comment(v){return document.createComment(v)}
     cdata(v){return document.createCDATASection(v)}
@@ -69,6 +73,7 @@ class Nodes {
         attr.value = value
         return attr
     }
+    get el(){return ml.el}
 }
 class Css {
     constructor() {
@@ -93,10 +98,11 @@ class Css {
 }
 
 class XPath {
+    /*
     static getPath(el) {
         if(el && el.parentNode) {
             let xpath = this.getPath(el.parentNode) + '/' + el.tagName;
-            const s = [...Array(el.parentNode.childNodes.length)].map((_,i)=>e.tagName===el.tagName ? el.parentNode.childNodes[i] : null).filter(v=>v)
+            const s = [...Array(el.parentNode.childNodes.length)].map((_,i)=>el.tagName===el.tagName ? el.parentNode.childNodes[i] : null).filter(v=>v)
             if(1 < s.length) {
                 for(var i=0; i<s.length; i++) {
                     if(s[i] === el) {xpath += '[' + (i+1) + ']';break;}
@@ -105,22 +111,59 @@ class XPath {
             return xpath.toLowerCase();
         } else {return ''}
     }
+    */
+    static getPath(el) { // https://qiita.com/ProjectICKX/items/eb4a48598a15675897cb
+        const NODE_TYPE_ELEMENT_NODE = 1;
+        if (el instanceof Array) { el = el[0] }
+        if (el.nodeType != NODE_TYPE_ELEMENT_NODE) {
+            throw new TypeError('Nodes other than the element node was passed. node_type:'+ el.nodeType +' node_name:'+ el.nodeName);
+        }
+        if (null===el.parentNode) {throw new TypeError('Element has no parent node. The element may not have been added to the document. Please do document.body.append(el).')}
+        const stacker = [];
+        let node_name = '';
+        let node_count = 0;
+        let node_point = null;
+        do {
+            node_name = el.nodeName.toLowerCase();
+            if (el.parentNode.children.length > 1) {
+                node_count = 0;
+                node_point = null;
+                for (let i=0; i<el.parentNode.children.length; i++) {
+                    if (el.nodeName == el.parentNode.children[i].nodeName) {
+                        node_count++;
+                        if (el == el.parentNode.children[i]) { node_point = node_count }
+                        if (node_point != null && node_count > 1) {
+                            node_name += '['+ node_point +']';
+                            break;
+                        }
+                    }
+                }
+            }
+            stacker.unshift(node_name);
+        } while ((el = el.parentNode) != null && el.nodeName != '#document');
+        return '/' + stacker.join('/').toLowerCase();
+    }
     static getEl(xpath){
-        const a = this.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+        //const a = this.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+        const a = this.#get(xpath)
         if (a.snapshotLength > 0) { return a.snapshotItem(0); }
     }
     static getEls(xpath){
-        const a = this.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+        //const a = this.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+        const a = this.#get(xpath)
         return [...Array(a.snapshotLength)].map((_,i)=>a.snapshotItem(i))
     }
     static delEls(xpath){
-        const a = this.evaluate(xpath, document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null)
+        //const a = this.evaluate(xpath, document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null)
+        const a = this.#get(xpath, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE)
         for (var i=0 ; i<a.snapshotLength; i++) {a.snapshotItem(i).parentNode.removeChild(a.snapshotItem(i))} 
     }
     static setEls(xpath, ...newEls){
-        const a = this.evaluate(xpath, document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null)
+        //const a = this.evaluate(xpath, document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null)
+        const a = this.#get(xpath, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE)
         for (var i=0 ; i<a.snapshotLength; i++) {a.snapshotItem(i).replaceWith(...newEls)}
     }
+    static #get(xpath, typ=XPathResult.ORDERED_NODE_SNAPSHOT_TYPE) {return document.evaluate(xpath, document, null, typ, null)}
 }
 class EventListener {
     constructor(el) {

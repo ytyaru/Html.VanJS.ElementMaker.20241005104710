@@ -17,10 +17,12 @@ window.addEventListener('DOMContentLoaded', (event) => {
     let el = document.createElement('p')
     'attr,data,cp,class,attrs,datas,cps,classs,styles,E,N,get,gets,set,del,getX,getXs,setX,delX'.split(',').map(k=>{console.log(k);return a.t(()=>!!el[k])})
     a.t(''===el.xpath)
+    a.t(''===el.text)
+    a.t('<p></p>'===el.html)
 
     // プロパティに代入しても無反応
     //'attr,data,cp,class,attrs,datas,cps,classs,styles,E,N,get,gets,set,del,getX,getXs,setX,delX'.split(',').map(k=>a.t(()=>{el[k]=null;return null!==el[k]}))
-    'attr,data,cp,class,attrs,datas,cps,styles,E,N,get,gets,set,del,getX,getXs,setX,delX'.split(',').map(k=>a.t(()=>{el[k]=null;return null!==el[k]}))
+    'text,html,attr,data,cp,class,attrs,datas,cps,styles,E,N,get,gets,set,del,getX,getXs,setX,delX'.split(',').map(k=>a.t(()=>{el[k]=null;return null!==el[k]}))
     a.e(TypeError, 'classsにセットする値は文字列かその配列であるべきです。', ()=>el.classs=null)
 
     // id:                標準API（グローバル・アトリビュート）  キー未存在時''
@@ -269,8 +271,10 @@ window.addEventListener('DOMContentLoaded', (event) => {
     // set  replaceWith
     let span = document.createElement('span')
     el.append(span)
-    a.t(null===el.get('span'))
-    document.body.append(el)   // append しないと取得できない！
+    //a.t(null===el.get('span'))
+    //document.body.append(el)   // append しないと取得できない！
+    a.t(span===el.get('span')) // append せずとも取得できる
+    document.body.append(el)
     a.t(span===el.get('span'))
     el.append(document.createElement('span'))
     console.log(el.gets('span'))
@@ -294,6 +298,8 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
     // setX
     el.setX(el.get('span').xpath, document.createElement('i'))
+    console.log(el.get('span'))
+    console.log(el.get('i'))
     a.t(el.get('i')===el.getX(el.get('i').xpath))
 
     // delX
@@ -483,7 +489,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
     // ノードと要素が混在したchildrenに何らかの処理を行いたい場合
     // nodeTypeで場合分けすることになる
-    // これが面倒なので糖衣構文を用意したい。
+    // これが面倒なので糖衣構文を用意した。
     console.log(el.N.mapChildrenByType({
         text: (n,i,gi)=>`#text:[${i}][${gi}]${n.nodeValue}`,
         comment: (n,i,gi)=>`#comment:[${i}][${gi}]${n.nodeValue}`,

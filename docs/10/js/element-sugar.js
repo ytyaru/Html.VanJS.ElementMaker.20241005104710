@@ -7,6 +7,8 @@ function camel2Chain(s) { return ifel(s.case.isCamel, ()=>s.case.chain,
 function chain2Camel(s) { return ifel(s.case.isChain, ()=>s.case.camel,
     s.pCase.isChain, ()=>s.pCase.camel) }
 Object.defineProperties(Element.prototype, {
+    text: {get(){return this.textContent}},
+    html: {get(){return this.outerHTML}},
     attr: { // HTML Element attribute
         get() { return new Proxy(this, {
             get(t,k){return t.getAttribute(k.case.chain)}, 
@@ -133,8 +135,10 @@ Object.defineProperties(Element.prototype, {
     },
 
     // 短縮形
-    get: {value(q,e){return document.querySelector(q, e ?? this)}},
-    gets: {value(q,e){return document.querySelectorAll(q, e ?? this)}},
+    get: {value(q,e){return this.querySelector(q)}},
+    gets: {value(q,e){return this.querySelectorAll(q)}},
+//    get: {value(q,e){return document.querySelector(q, e ?? this)}},
+//    gets: {value(q,e){return document.querySelectorAll(q, e ?? this)}},
     getP: {value(q){return this.closest(q)}},
     set: {value(...es){return this.replaceWith(...es)}},
     del: {value(){this.remove()}},
@@ -145,10 +149,10 @@ Object.defineProperties(Element.prototype, {
     pns: {value(...cs){return this.before(...cs)}},
     // XPath
     xpath: {get(){return XPath.getPath(this)}},
-    getX: {value(p){return XPath.getEl(p)}},
-    getXs: {value(p){return XPath.getEls(p)}},
-    setX: {value(p, ...es){return XPath.replaceEls(p, ...es)}},
-    delX: {value(p){return XPath.delEls(p)}},
+    getX: {value(p){return XPath.getEl(this,p)}},
+    getXs: {value(p){return XPath.getEls(this,p)}},
+    setX: {value(p, ...es){return XPath.replaceEls(this,p,...es)}},
+    delX: {value(p){return XPath.delEls(this,p)}},
 })
 class Elm {
     constructor(el) { this._el = el } // window.Element
@@ -281,25 +285,40 @@ class XPath {
             return xpath.toLowerCase();
         } else {return ''}
     }
-    static getEl(xpath){
-        const a = this.#get(xpath)
+    static getEl(el,xpath){
+        const a = this.#get(el, xpath)
         if (a.snapshotLength > 0) { return a.snapshotItem(0); }
     }
-    static getEls(xpath){
-        const a = this.#get(xpath)
+    static getEls(el,xpath){
+        const a = this.#get(el, xpath)
         return [...Array(a.snapshotLength)].map((_,i)=>a.snapshotItem(i))
     }
-    static delEls(xpath){
-        const a = this.#get(xpath, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE)
+    static delEls(el,xpath){
+        const a = this.#get(el, xpath, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE)
         for (var i=0 ; i<a.snapshotLength; i++) {a.snapshotItem(i).parentNode.removeChild(a.snapshotItem(i))} 
     }
-    static replaceEls(xpath, ...newEls){
-        const a = this.#get(xpath, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE)
+    static replaceEls(el,xpath, ...newEls){
+        const a = this.#get(el, xpath, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE)
         for (var i=0 ; i<a.snapshotLength; i++) {a.snapshotItem(i).replaceWith(...newEls)}
     }
-    static #get(xpath, typ=XPathResult.ORDERED_NODE_SNAPSHOT_TYPE) {return document.evaluate(xpath, document, null, typ, null)}
+    static #get(el, xpath, typ=XPathResult.ORDERED_NODE_SNAPSHOT_TYPE) {return document.evaluate(xpath, el ?? document, null, typ, null)}
+    static #gets(el, xpath, typ=XPathResult.ORDERED_NODE_SNAPSHOT_TYPE) {
+        const a = this.#get(el, xpath, typ)
+        return [...Array(a.snapshotLength)].map((_,i)=>a.snapshotItem(i))
+    }
 }
-
+// CDATASectionは存在せずTextで実装している https://developer.mozilla.org/ja/docs/Web/API/CDATASection
+for (let typ of [Text, Comment, ProcessingInstruction, Document, DocumentType, DocumentFragment]) {
+    Object.defineProperties(typ.prototype, {
+        N: {
+            get() {
+                if (!this._node){this._node=new Node(this)}
+                return this._node;
+            },
+        },
+    });
+}
+/*
 Object.defineProperties(Text.prototype, {
     N: {
         get() {
@@ -316,5 +335,10 @@ Object.defineProperties(Comment.prototype, {
         },
     },
 });
+*/
+
+
+
+
 
 })();
