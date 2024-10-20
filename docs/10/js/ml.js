@@ -56,7 +56,7 @@ class ML { // 要素を操作する（生成、追加、取得、置換、削除
     set onStart(fn) { window.events.on('DOMContentLoaded', fn) }
     get onEnd() {return window.events.events.getFirstFn('beforeunload')}
     set onEnd(fn) { window.events.on('beforeunload', fn) }
-
+    trigger(el,ev){return el.dispatchEvent(Type.isStr(ev) ? new Event(ev) : ev)}
 }
 class Nodes {
 //    frag(...els){return document.createDocumentFragment(...els)}
@@ -147,6 +147,7 @@ class XPath {
         //const a = this.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
         const a = this.#get(xpath)
         if (a.snapshotLength > 0) { return a.snapshotItem(0); }
+        else {return null}
     }
     static getEls(xpath){
         //const a = this.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
@@ -164,6 +165,16 @@ class XPath {
         for (var i=0 ; i<a.snapshotLength; i++) {a.snapshotItem(i).replaceWith(...newEls)}
     }
     static #get(xpath, typ=XPathResult.ORDERED_NODE_SNAPSHOT_TYPE) {return document.evaluate(xpath, document, null, typ, null)}
+}
+class Events {
+    constructor() { this._events = {}; }
+    // options:{detail:null, bubbles:false, cancelable:false, composed:false}
+    make(name, option) {const e = new CustomEvent(name, option); this._events[name]=e; return e; }
+    get(name){return this._events[name]}
+    keys() {return Object.keys(this._events)}
+    values() {return Object.values(this._events)}
+    entries() {return Object.entries(this._events)}
+    trigger(el,ev) {return el.dispatchEvent(ev instanceof Event ? ev : (Type.isStr(ev) ? new Event(ev) : (()=>{throw new TypeError(`ev type invalid. String or Event only.`)})()))}
 }
 class EventListener {
     constructor(el) {

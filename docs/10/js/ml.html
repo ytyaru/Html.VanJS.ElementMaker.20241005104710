@@ -223,7 +223,41 @@ window.addEventListener('DOMContentLoaded', (event) => {
     })();
 
     // setX
+    ;(function(){
+        const p = ml.el.p({id:'id-p'})
+        const i = ml.el.i({id:'id-i'})
+        p.add(i)
+        ml.root.add(p)
+        console.log()
+        a.t(i===ml.getX(i.xpath))
+        const b = ml.el.b({id:'id-b'})
+        ml.setX(i.xpath, b)
+        a.t(b===ml.getX('/html/p/b'))
+        i.del()
+        b.del()
+        p.del()
+    })();
+
     // delX
+    ;(function(){
+        const p = ml.el.p({id:'id-p'})
+        const i = ml.el.i({id:'id-i'})
+        p.add(i)
+        ml.root.add(p)
+        console.log(i.xpath)
+        a.t(i===ml.getX(i.xpath))
+        ml.delX(i.xpath)
+        //console.log(i.xpath)
+        //console.log(ml.getX('/html/p[2]/i'))
+        //console.log(ml.getX(''))
+        a.e(DOMException, `Failed to execute 'evaluate' on 'Document': The string '' is not a valid XPath expression.`, ()=>ml.getX(''))
+//        a.t(null===ml.getX('/html/p[2]/i'))
+//        a.t(null===ml.getX(i.xpath))
+        a.e(DOMException, `Failed to execute 'evaluate' on 'Document': The string '' is not a valid XPath expression.`, ()=>ml.getX(i.xpath))
+        i.del()
+        p.del()
+    })();
+
     // on
     // off
     // onStart
