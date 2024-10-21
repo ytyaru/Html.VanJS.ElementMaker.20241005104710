@@ -328,8 +328,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
         console.log(window.events.obj['DOMContentLoaded'])
         a.t(onStart2===window.events.obj['DOMContentLoaded'][0][0])
         a.t(undefined===window.events.obj['DOMContentLoaded'][0][1])
-        // mapはset可, objは不可
-        //const onStart3 = ()=>v='onStart3'
+        // map,obj共にset可
         window.events.map.get('DOMContentLoaded')[0][0] = onStart
         a.t(onStart===window.events.obj['DOMContentLoaded'][0][0])
         window.events.map.set('DOMContentLoaded', [[onStart2,undefined]])
@@ -338,16 +337,81 @@ window.addEventListener('DOMContentLoaded', (event) => {
         a.t(onStart===window.events.obj['DOMContentLoaded'][0][0])
         window.events.obj['DOMContentLoaded'] = [[onStart2,undefined]] // 代入しても反映されない！
         a.t(onStart2===window.events.obj['DOMContentLoaded'][0][0])
-        /*
-        */
     })();
 
     // onEnd
     ;(function(){
-    })();
+        let v = null
+        const onEnd = ()=>v='onEnd!!'
+        ml.onEnd = onEnd
+        a.t(onEnd===ml.onEnd)
+        a.t(window.events.map.has('beforeunload'))
+        a.t(1===window.events.map.get('beforeunload').length)
+        a.t(onEnd===window.events.map.get('beforeunload')[0][0])
+        a.t(undefined===window.events.map.get('beforeunload')[0][1])
+        // window.events['beforeunload']
+        // window.events.map.get('beforeunload')
+        a.t(1===window.events.obj['beforeunload'].length)
+        a.t(onEnd===window.events.obj['beforeunload'][0][0])
+        a.t(undefined===window.events.obj['beforeunload'][0][1])
+        // onEndは一つの関数のみ設定可能
+        const onEnd2 = ()=>v='onEnd2'
+        ml.onEnd = onEnd2
+        a.t(window.events.map.has('beforeunload'))
+        a.t(1===window.events.map.get('beforeunload').length)
+        a.t(onEnd2===window.events.map.get('beforeunload')[0][0])
+        a.t(undefined===window.events.map.get('beforeunload')[0][1])
+        // window.events['beforeunload']
+        // window.events.map.get('beforeunload')
+        a.t(1===window.events.obj['beforeunload'].length)
+        a.t(onEnd2===window.events.obj['beforeunload'][0][0])
+        a.t(undefined===window.events.obj['beforeunload'][0][1])
+        // map,obj共にset可
+        window.events.map.get('beforeunload')[0][0] = onEnd
+        a.t(onEnd===window.events.obj['beforeunload'][0][0])
+        window.events.map.set('beforeunload', [[onEnd2,undefined]])
+        a.t(onEnd2===window.events.obj['beforeunload'][0][0])
+        window.events.obj['beforeunload'][0][0] = onEnd
+        a.t(onEnd===window.events.obj['beforeunload'][0][0])
+        window.events.obj['beforeunload'] = [[onEnd2,undefined]] // 代入しても反映されない！
+        a.t(onEnd2===window.events.obj['beforeunload'][0][0])
+     })();
 
     // trigger
     ;(function(){
+        const i = ml.el.i('i-text')
+        const evNm = 'click'
+        const fn = (e)=>v=e.target.textContent
+        // on
+        let v = null
+        ml.on(i,evNm,fn)
+        ml.trigger(i,evNm)
+        a.t('i-text'===v)
+        // off
+        v = null
+        ml.off(i,evNm,fn)
+        ml.trigger(i,evNm)
+        a.t(null===v)
+
+        // CustomEvent（detail無）
+        const myEv = new CustomEvent('myEvent')
+        ml.on(i,'myEvent',fn)
+        ml.trigger(i,'myEvent') // 名前で発火
+        a.t('i-text'===v)
+        v = null
+        ml.trigger(i,myEv) // インスタンスで発火
+        a.t('i-text'===v)
+
+        // CustomEvent（detail有）
+        const myEvD = new CustomEvent('myEventD',{detail:'some-value'})
+        ml.on(i,'myEventD',fn)
+        ml.trigger(i,'myEventD') // 名前で発火
+        a.t('i-text'===v)
+        v = null
+        ml.trigger(i,myEvD) // インスタンスで発火
+        a.t('i-text'===v)
+
+
     })();
 
 

@@ -54,7 +54,7 @@ class ML { // 要素を操作する（生成、追加、取得、置換、削除
     off(el, evNm, fn, opt) { el.events.off(evNm, fn, opt) }
     get onStart() {return window.events.getFirstFn('DOMContentLoaded')}
     set onStart(fn) { window.events.on('DOMContentLoaded', fn) }
-    get onEnd() {return window.events.events.getFirstFn('beforeunload')}
+    get onEnd() {return window.events.getFirstFn('beforeunload')}
     set onEnd(fn) { window.events.on('beforeunload', fn) }
     trigger(el,ev){return el.dispatchEvent(Type.isStr(ev) ? new Event(ev) : ev)}
 }
@@ -182,72 +182,10 @@ class EventListener {
         this._el = el
         this._map = new Map() // {click:[[fn,opt],...]}
     }
-    //get obj() { return [...this._map.entries()].toObject() }
-//    get obj() { return new Proxy(this, {
-//        get(t,k){ console.log([...t._map.entries()], [...t._map.entries()].toObject());return [...t._map.entries()].toObject() },
-//        set(t,k,v){ if (Type.isArys(v)) { v.del(k); v.map(fnOpt=>t.add(k, ...fnOpt)); } },
-//    })}
-/*
     get obj() {
         const O = [...this._map.entries()].toObject()
-        return new Proxy(O, {
-            get(t,k){return t[k]},
-            set(t,k,v){ if (Type.isArys(v)) { this.del(k); this.map(fnOpt=>t.add(k, ...fnOpt)); } },
-        })
-    }
-*/
-    //get el(){return new Proxy(ns=>new Proxy(this.#el, this.#handler(ns)), this.#handler())}
-//    get obj(){return new Proxy(evNm=>new Proxy(this.#obj(evNm), this.#handler(evNm)), this.#handler())}
-    /*
-    get obj() {
-        const O = [...this._map.entries()].toObject()
-        return new Proxy(this, {
-            get(t,k){return t[k]},
-            set(t,k,v){ if (Type.isArys(v)) { this.del(k); this.map(fnOpt=>t.add(k, ...fnOpt)); } },
-        })
-    }
-    */
-    //get #obj() { return [...this._map.entries()].toObject() }
-//    #obj(evNm) {
-//        const O = [...this._map.entries()].toObject()
-//        return evNm ? O[evNm] : O
-//    }
-//    #handler(evNm){return {get:(_,evNm)=>this.#obj.bind(this, evNm)}}
-//    #obj(evNm) {
-//        const O = [...this._map.entries()].toObject()
-//        return evNm ? O[evNm] : O
-//    }
-//    set obj(v) { if (Type.isObj(v)) { this.clear(); this._map = new Map([...v.entries()]); } }
-    /*
-    get obj() {
-        const O = [...this._map.entries()].toObject()
-        //return new Proxy(new Proxy(this, {
-        return new Proxy(new Proxy(O, {
-                //get(t,k){return [...t._map.entries()].toObject()},
-                get(t,k){return t[k]},
-                set(t,k,v){ if (Type.isArys(v)) { v.del(k); v.map(fnOpt=>t.add(k, ...fnOpt)); } },
-            }), {
-            get(t,k){return t},
-            //set(t,k,v){ if (Type.isArys(v)) { v.del(k); v.map(fnOpt=>t.add(k, ...fnOpt)); } },
-            set(t,k,v){ if (Type.isObj(v)) { this.clear(); this._map = new Map([...v.entries()]); } },
-//            get(t,k){return [...t._map.entries()].toObject()},
-//            set(t,k,v){ if (Type.isArys(v)) { v.del(k); v.map(fnOpt=>t.add(k, ...fnOpt)); } },
-//                set(t,k,v){ if (Type.isAry(v)) { v.del(k,...v); t.add(k, ...v); } },
-        })
-//        get(t,k){ console.log([...t._map.entries()], [...t._map.entries()].toObject());return [...t._map.entries()].toObject() },
-//        set(t,k,v){ if (Type.isArys(v)) { v.del(k); v.map(fnOpt=>t.add(k, ...fnOpt)); } },
-    //})}
-    }
-    */
-    //#el(ns, name, ...args) {
-
-    get obj() {
-        const O = [...this._map.entries()].toObject()
-        //return new Proxy(O, this.#handler())
-        //return new Proxy(O, {get:(_,k)=>this.#getObj.bind(this,k),set:(_,k,v)=>this.#setObj.bind(this,k,v)})
         return new Proxy(O, {get:(_,k)=>this.#getObjItem(k),set:(_,k,v)=>this.#setObjItem(k,v)})
     }
-//    #handler(){return {get:(_,k)=>this.#getObj.bind(this,k),set:(_,k,v)=>this.#setObj.bind(this,k,v)}}
     #getObjItem(evNm) {return [...this._map.entries()].toObject()[evNm]}
     #setObjItem(evNm,fnOpts) { this._map.delete(evNm); this._map.set(evNm, fnOpts); }
     set obj(v) {
