@@ -77,6 +77,17 @@ class Nodes {
 }
 class Css {
     constructor() {
+        this._cp = new Proxy(this, {
+            get(t,k){return ml.root.style.getPropertyValue(`--${k.case.chain}`)},
+            set(t,k,v){Type.isNU(v) ? ml.root.style.removeProperty(`--${k.case.chain}`) : ml.root.style.setProperty(`--${k.case.chain}`,v)}
+        });
+        this._CP = new Proxy(this, {
+            get(t,k){return getComputedStyle(ml.root).getPropertyValue(`--${k.case.chain}`)},
+//            set(t,k,v){Type.isNU(v) ? ml.root.style.removeProperty(`--${k.case.chain}`) : ml.root.style.setProperty(`--${k.case.chain}`,v)}
+            set(t,k,v){throw new TypeError('CPに値はセットできません。代わりにcpを使用してください。')}
+        });
+
+        /*
         this._v = new Proxy(this, {
             get(t,k){return ml.root.style.getPropertyValue(`--${k.case.chain}`)},
             set(t,k,v){Type.isNU(v) ? ml.root.style.removeProperty(`--${k.case.chain}`) : ml.root.style.setProperty(`--${k.case.chain}`,v)}
@@ -85,6 +96,7 @@ class Css {
             get(t,k){return getComputedStyle(ml.root).getPropertyValue(`--${k.case.chain}`)},
 //            set(t,k,v){Type.isNU(v) ? ml.root.style.removeProperty(`--${k.case.chain}`) : ml.root.style.setProperty(`--${k.case.chain}`,v)}
         });
+        */
         /*
         this._cp = return new Proxy(this, {
             get(t,k){return t.root.style.getPropertyValue(`--${k.case.chain}`)}, // getComputedStyle(t).getPropertyValue(...)
@@ -92,9 +104,18 @@ class Css {
         });
         */
     }
-    get v() {return this._v} // CSS variable / CSS Custom Property  style
-    get V() {return this._V} // CSS variable / CSS Custom Property  getComputedStyle
+    get cp() {return this._cp} // CSS variable / CSS Custom Property  style
+    get CP() {return this._CP} // CSS variable / CSS Custom Property  getComputedStyle
+//    get v() {return this._v} // CSS variable / CSS Custom Property  style
+//    get V() {return this._V} // CSS variable / CSS Custom Property  getComputedStyle
     get sheets() {return document.styleSheets}
+    add(attrs, text, cbFn) { // <style>動的挿入  css.add({id:'some-css'}, `:root{--main-color:red;}`, ()=>alert('Added CSS!!'))
+        const [opt, child, fn] = Type.isObj(attrs) ? [attrs, text, cbFn] : [{}, attrs, text]
+        if (Type.isFn(fn)) { opt.onload = fn }
+        const style = ml.el.style(opt, child)
+        const parent = ml.root.get('head') ?? ml.root.get('body') ?? ml.root
+        parent.append(style)
+    }
 }
 
 class XPath {

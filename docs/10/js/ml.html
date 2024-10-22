@@ -414,9 +414,71 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
     })();
 
+    ;(function(){ // sheets
+        a.t(document.styleSheets===css.sheets)
+    })();
+    ;(function(){ // cp
+        console.log(css.cp.mainColor)
+        a.t(''===css.cp.mainColor)
+//        console.log(ml.root.style['--main-color'])
+//        console.log(ml.root.style.getPropertyValue('--main-color'))
+        a.t(undefined===ml.root.style['--main-color'])
+        a.t(''===ml.root.style.getPropertyValue('--main-color'))
+        css.cp.mainColor = 'red'
+        a.t('red'===css.cp.mainColor)
+        a.t(undefined===ml.root.style['--main-color'])
+        a.t('red'===ml.root.style.getPropertyValue('--main-color'))
+//        console.log(ml.root.style)
+//        console.log(ml.root.style['--main-color'])
+//        console.log(ml.root.style.getPropertyValue('--main-color'))
+        css.cp.mainColor = null
+        a.t(''===css.cp.mainColor)
+        a.t(undefined===ml.root.style['--main-color'])
+        a.t(''===ml.root.style.getPropertyValue('--main-color'))
+    })();
+    ;(function(){ // CP
+        //console.log(css.CP.mainColor)
+        a.t(''===css.CP.mainColor)
+        a.t(undefined===ml.root.style['--main-color'])
+        a.t(''===ml.root.style.getPropertyValue('--main-color'))
+        a.e(TypeError, 'CPに値はセットできません。代わりにcpを使用してください。', ()=>css.CP.mainColor = 'red')
+        css.cp.mainColor = 'red'
+        a.t('red'===css.CP.mainColor)
+        a.t(undefined===ml.root.style['--main-color'])
+        a.t('red'===ml.root.style.getPropertyValue('--main-color'))
+        css.cp.mainColor = null
+        a.t(''===css.CP.mainColor)
+        a.t(undefined===ml.root.style['--main-color'])
+        a.t(''===ml.root.style.getPropertyValue('--main-color'))
+    })();
+    ;(function(){ // cp:inline, CP:css+inline
+        const i = ml.el.i({id:'id-i'})
+        const style = ml.el.style({id:'id-style'}, ':root{--main-color:red;}')
+        a.t(''===css.cp.mainColor)
+        a.t(''===css.CP.mainColor)
+        a.t(undefined===ml.root.style['--main-color'])
+        a.t(''===ml.root.style.getPropertyValue('--main-color'))
+        a.t(''===getComputedStyle(ml.root).getPropertyValue('--main-color'))
+
+        ml.root.add(i)
+        a.t(''===css.cp.mainColor)
+        a.t(''===css.CP.mainColor)
+        a.t(undefined===ml.root.style['--main-color'])
+        a.t(''===ml.root.style.getPropertyValue('--main-color'))
+        a.t(''===getComputedStyle(ml.root).getPropertyValue('--main-color'))
+
+        ml.root.add(style)
+        a.t(''===css.cp.mainColor)
+        a.t('red'===css.CP.mainColor)
+        a.t(undefined===ml.root.style['--main-color'])
+        a.t(''===ml.root.style.getPropertyValue('--main-color'))
+        a.t('red'===getComputedStyle(ml.root).getPropertyValue('--main-color'))
+    })();
 
 
 
+
+    /*
     ;(function(){
         const p = ml.el.p(ml.el.span('A'), ml.el.span('B'), ml.el.span('C'))
         console.log(p)
@@ -431,7 +493,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
     })();
     ;(function(){
     })();
-
+    */
 
     ;(function(){
     })();
