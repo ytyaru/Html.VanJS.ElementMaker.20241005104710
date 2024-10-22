@@ -136,6 +136,25 @@ window.addEventListener('DOMContentLoaded', (event) => {
         a.t(null===ml.get('#test-p'))
     })();
 
+    // $()  get
+    ;(function(){
+        const p = ml.el.p(ml.el.span({id:'A'},'A'), ml.el.span({id:'B'},'B'), ml.el.span({id:'C'},'C'))
+        ml.root.add(p)
+        a.t($('#B')===document.querySelector('#B'))
+        p.del()
+    })();
+
+    // $$()  gets
+    ;(function(){
+        const p = ml.el.p(ml.el.span({id:'A'},'A'), ml.el.span({id:'B'},'B'), ml.el.span({id:'C'},'C'))
+        ml.root.add(p)
+        const spans = $$('span')
+        a.t(3===spans.length &&'A'===spans[0].text &&'B'===spans[1].text &&'C'===spans[2].text)
+        p.del()
+        //console.log(ml.get('p'))
+        //a.t(null===ml.get('p'))
+    })();
+
     // get
     ;(function(){
         const p = ml.el.p(ml.el.span({id:'A'},'A'), ml.el.span({id:'B'},'B'), ml.el.span({id:'C'},'C'))

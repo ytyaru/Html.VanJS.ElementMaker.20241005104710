@@ -138,9 +138,6 @@ class XPath {
     static #get(xpath, typ=XPathResult.ORDERED_NODE_SNAPSHOT_TYPE) {return document.evaluate(xpath, document, null, typ, null)}
 }
 class CustomEvents {
-    //constructor() { this._events = {}; }
-    // options:{detail:null, bubbles:false, cancelable:false, composed:false}
-    //make(name, option) {const e = new CustomEvent(name, option); this._events[name]=e; return e; }
     constructor() { this._map = new Map(); }
     new(name, option) {return new CustomEvent(name, option);}
     add(name, option) {const e = new CustomEvent(name, option); this._map.set(name,e); return e; }
@@ -164,13 +161,6 @@ class CustomEvents {
             this._map = new Map([...v.entries()])
         }
     }
-
-//    get(name){return this._events[name]}
-//    get keys() {return Object.keys(this._events)}
-//    get values() {return Object.values(this._events)}
-//    get entries() {return Object.entries(this._events)}
-//    get obj() { return this._events }
-    trigger(el,ev) {return el.dispatchEvent(ev instanceof Event ? ev : (Type.isStr(ev) ? new Event(ev) : (()=>{throw new TypeError(`ev type invalid. String or Event only.`)})()))}
 }
 class EventListener {
     constructor(el) {
@@ -254,5 +244,7 @@ Element.prototype.trigger = function(ev){
 }
 window.ml = new ML()
 window.css = new Css()
+window.$ = (q,e)=>(e ?? ml.root).querySelector(q)
+window.$$ = (q,e)=>(e ?? ml.root).querySelectorAll(q)
 })();
 
