@@ -727,33 +727,65 @@ window.addEventListener('DOMContentLoaded', (event) => {
         a.t(1===i.events.map.size)
         a.t(on2===i.events.gets('click')[0][0])
         a.t(on2===i.events.getFirstFn('click'))
+        i.del()
     })();
 
     // CustomEvents 
     ;(function(){
-        ml.events
-    })();
-    /*
-    ;(function(){
-        const p = ml.el.p(ml.el.span('A'), ml.el.span('B'), ml.el.span('C'))
-        console.log(p)
-        console.log(p.get('span'))
-        a.t('A'===p.get('span').text)
-        console.log(p.gets('span'))
-        console.log(p.querySelectorAll('span'))
-        const spans = [...p.gets('span')]
-        console.log(spans)
-        a.t(3===spans.length &&'A'===spans[0].text &&'B'===spans[1].text &&'C'===spans[2].text)
-        p.del()
-    })();
-    ;(function(){
-    })();
-    */
+        a.t(0===ml.events.size)
+        ml.events.add('myEvent', {detail:'some-value'})
+        a.t(1===ml.events.size)
+        a.t(Type.isMap(ml.events.map))         
+        a.t(Type.isObj(ml.events.obj))         
+        a.t(ml.events.map.get('myEvent') instanceof Event)
+        a.t(ml.events.map.get('myEvent') instanceof CustomEvent)
+        a.t(ml.events.map.get('myEvent').type==='myEvent')
+        a.t(ml.events.map.get('myEvent').detail==='some-value')
+        a.t(ml.events.get('myEvent') instanceof Event)
+        a.t(ml.events.get('myEvent') instanceof CustomEvent)
+        a.t(ml.events.get('myEvent').type==='myEvent')
+        a.t(ml.events.get('myEvent').detail==='some-value')
+        a.t(ml.events.obj['myEvent'] instanceof Event)
+        a.t(ml.events.obj['myEvent'] instanceof CustomEvent)
+        a.t(ml.events.obj['myEvent'].type==='myEvent')
+        a.t(ml.events.obj['myEvent'].detail==='some-value')
 
-    ;(function(){
+        const e1 = ml.events.new('someEvent', {detail:'some'})
+        a.t(1===ml.events.size) // Mapに追加されない
+        a.t(e1 instanceof CustomEvent)
+        a.t(e1.type==='someEvent')
+        a.t(e1.detail==='some')
+
+        const e2 = ml.events.add('someEvent2', {detail:'some2'})
+        a.t(2===ml.events.size) // Mapに追加される
+        a.t(e2.type==='someEvent2')
+        a.t(e2.detail==='some2')
+
+        a.t(2===[...ml.events.keys].length)
+        a.t('myEvent'===[...ml.events.keys][0])
+        a.t('someEvent2'===[...ml.events.keys][1])
+
+        a.t(2===[...ml.events.values].length)
+        a.t('myEvent'===[...ml.events.values][0].type)
+        a.t('someEvent2'===[...ml.events.values][1].type)
+
+        a.t(2===[...ml.events.entries].length)
+        a.t('myEvent'===[...ml.events.entries][0][0])
+        a.t('someEvent2'===[...ml.events.entries][1][0])
+        a.t('myEvent'===[...ml.events.entries][0][1].type)
+        a.t('someEvent2'===[...ml.events.entries][1][1].type)
+
+        ml.events.del('myEvent')
+        a.t(1===ml.events.size)
+        a.t(ml.events.obj['someEvent2'] instanceof CustomEvent)
+        a.t(ml.events.obj['someEvent2'].type==='someEvent2')
+        a.t(ml.events.obj['someEvent2'].detail==='some2')
+
+        ml.events.add('someEvent3')
+        a.t(2===ml.events.size)
+        ml.events.clear()
+        a.t(0===ml.events.size)
     })();
-
-
     a.fin()
 })
 </script>

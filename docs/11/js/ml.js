@@ -143,11 +143,14 @@ class CustomEvents {
     //make(name, option) {const e = new CustomEvent(name, option); this._events[name]=e; return e; }
     constructor() { this._map = new Map(); }
     new(name, option) {return new CustomEvent(name, option);}
-    make(name, option) {const e = new CustomEvent(name, option); this._map.set(name,e); return e; }
+    add(name, option) {const e = new CustomEvent(name, option); this._map.set(name,e); return e; }
     get(name){return this._map.get(name)}
+    del(name){return this._map.delete(name)}
+    clear(){return this._map.clear()}
     get keys() {return this._map.keys()}
     get values() {return this._map.values()}
     get entries() {return this._map.entries()}
+    get size() {return this._map.size}
     get map() { return this._map }
     get obj() {
         const O = [...this._map.entries()].toObject()
